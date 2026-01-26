@@ -1,5 +1,5 @@
 {
-  "name": "esp32-tanque-server",
+  "name": "bomba",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
