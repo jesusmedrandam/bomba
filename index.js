@@ -1,84 +1,65 @@
+// ================================
+// Servidor Render - ESP32 Tanque
+// ================================
+
 const express = require('express');
 const app = express();
 
-/* ================= CONFIG ================= */
+// ---------- CONFIGURACIÓN ----------
+const TOKEN = "A9F3K2X7";   // mismo token que el ESP32
+let ultimoEstado = {};      // aquí se guardan los últimos datos
 
-// Token de autenticación (el mismo que usa el ESP32)
-const AUTH_TOKEN = "A9F3K2X7";
-
-// Últimos datos recibidos del ESP32
-let ultimoEstado = {
-  id: null,
-  nivel_tanque: null,
-  nivel_pozo: null,
-  bomba: null,
-  modo: null,
-  timestamp: null
-};
-
+// ---------- MIDDLEWARE ----------
 app.use(express.json());
 
-/* ================= MIDDLEWARE AUTH ================= */
-
+// Verificación de token
 function verificarToken(req, res, next) {
   const token = req.headers['x-auth-token'];
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token requerido' });
+  if (!token || token !== TOKEN) {
+    return res.status(401).json({ error: "Token inválido o ausente" });
   }
-
-  if (token !== AUTH_TOKEN) {
-    return res.status(403).json({ error: 'Token inválido' });
-  }
-
   next();
 }
 
-/* ================= RUTAS ================= */
+// ---------- RUTAS ----------
 
-// Ruta raíz (solo para comprobar que el server está vivo)
+// Ruta base (prueba rápida)
 app.get('/', (req, res) => {
-  res.send('Servidor ESP32 Tanque activo');
+  res.send("Servidor ESP32 Tanque activo");
 });
 
-/* -------- ESP32 → Render (POST) -------- */
-app.post('/api/datos', verificarToken, (req, res) => {
-  const {
-    id,
-    nivel_tanque,
-    nivel_pozo,
-    bomba,
-    modo
-  } = req.body;
+// ESP32 → ENVÍA DATOS
+// (NO requiere token aquí porque el ESP32 YA lo manda en el body)
+app.post('/api/datos', (req, res) => {
+  const data = req.body;
 
-  // Guardar último estado
+  // Validación mínima
+  if (!data || !data.id || data.auth !== TOKEN) {
+    return res.status(401).json({ error: "Datos o token inválidos" });
+  }
+
   ultimoEstado = {
-    id,
-    nivel_tanque,
-    nivel_pozo,
-    bomba,
-    modo,
+    ...data,
     timestamp: Date.now()
   };
 
-  console.log('Datos recibidos:', ultimoEstado);
+  console.log("Datos recibidos del ESP32:", ultimoEstado);
 
-  res.json({ status: 'ok' });
+  res.json({ status: "ok" });
 });
 
-/* -------- App / Web → Render (GET) -------- */
+// CLIENTES → LEEN DATOS (PROTEGIDO)
 app.get('/api/datos', verificarToken, (req, res) => {
-  if (!ultimoEstado.timestamp) {
-    return res.status(404).json({ error: 'Sin datos aún' });
+  if (!ultimoEstado.id) {
+    return res.status(404).json({ error: "Aún no hay datos del ESP32" });
   }
 
   res.json(ultimoEstado);
 });
 
-/* ================= START ================= */
-
+// ---------- INICIAR SERVIDOR ----------
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log('Servidor escuchando en puerto', PORT);
+  console.log(`Servidor activo en puerto ${PORT}`);
 });
