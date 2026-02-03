@@ -46,9 +46,21 @@ app.post("/api/datos", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// APP → LEE ESTADO
-app.get("/api/datos", verificarToken, (req, res) => {
-  if (!estadoActual) return res.status(404).json({ error: "aún no hay datos" });
+// APP / PC → LEE ESTADO  (CORREGIDO)
+app.get("/api/datos", (req, res) => {
+  // Token desde query o header
+  const token =
+    req.headers["x-auth-token"] ||
+    req.query.auth;
+
+  if (!token || token !== TOKEN) {
+    return res.status(401).json({ error: "Token inválido" });
+  }
+
+  if (!estadoActual) {
+    return res.status(404).json({ error: "aún no hay datos" });
+  }
+
   res.json(estadoActual);
 });
 
@@ -62,7 +74,8 @@ app.post("/api/control", verificarToken, (req, res) => {
 
   if (
     !payload ||
-    (!payload.hasOwnProperty("modo_auto") && !payload.hasOwnProperty("bomba"))
+    (!payload.hasOwnProperty("modo_auto") &&
+     !payload.hasOwnProperty("bomba"))
   ) {
     return res.status(400).json({ error: "payload inválido" });
   }
@@ -81,7 +94,7 @@ app.get("/api/control", (req, res) => {
   const ctrl = controlPendiente;
   controlPendiente = null;
 
-  res.json({ control: ctrl }); // ← FORMATO QUE EL ESP32 ESPERA
+  res.json({ control: ctrl });
 });
 
 // =====================================================
@@ -110,7 +123,7 @@ app.get("/api/config", (req, res) => {
   const cfg = configPendiente;
   configPendiente = null;
 
-  res.json({ config: cfg }); // ← FORMATO QUE EL ESP32 ESPERA
+  res.json({ config: cfg });
 });
 
 // =====================================================
@@ -120,3 +133,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto", PORT);
 });
+
