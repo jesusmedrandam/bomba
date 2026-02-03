@@ -11,8 +11,8 @@ const TOKEN = "A9F3K2X7";
 // -------- ESTADO GLOBAL --------
 let estadoActual = null;
 
-let controlPendiente = null;  // modo_auto, bomba
-let configPendiente = null;   // min_pozo, min_tanque, max_tanque, profundidad, altura
+let controlPendiente = null;  // { modo_auto, bomba }
+let configPendiente = null;   // { min_pozo, min_tanque, max_tanque, prof_pozo, alt_tanque }
 
 // -------- MIDDLEWARE --------
 app.use(express.json());
@@ -20,7 +20,7 @@ app.use(express.json());
 function verificarToken(req, res, next) {
   const token = req.headers["x-auth-token"];
   if (!token || token !== TOKEN) {
-    return res.status(401).json({ error: "Token invalido o ausente" });
+    return res.status(401).json({ error: "Token inválido o ausente" });
   }
   next();
 }
@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 });
 
 // =====================================================
-// =============== TELEMETRIA ===========================
+// ================= TELEMETRIA ========================
 // =====================================================
 
 // ESP32 → ENVIA ESTADO
@@ -42,11 +42,7 @@ app.post("/api/datos", (req, res) => {
     return res.status(401).json({ error: "Token inválido" });
   }
 
-  estadoActual = {
-    ...data,
-    timestamp: Date.now()
-  };
-
+  estadoActual = { ...data, timestamp: Date.now() };
   res.json({ status: "ok" });
 });
 
@@ -57,47 +53,46 @@ app.get("/api/datos", verificarToken, (req, res) => {
 });
 
 // =====================================================
-// =============== CONTROL (modo / bomba) ===============
+// ================= CONTROL ===========================
 // =====================================================
 
-// APP → ENVIA CONTROL (igual que local)
+// APP → ENVIA CONTROL
 app.post("/api/control", verificarToken, (req, res) => {
   const payload = req.body;
 
   if (
     !payload ||
-    (
-      !payload.hasOwnProperty("modo_auto") &&
-      !payload.hasOwnProperty("bomba")
-    )
+    (!payload.hasOwnProperty("modo_auto") && !payload.hasOwnProperty("bomba"))
   ) {
     return res.status(400).json({ error: "payload inválido" });
   }
 
-  // Se guarda como pendiente
   controlPendiente = payload;
 
   res.json({ status: "control guardado" });
 });
 
-// ESP32 → LEE PENDIENTE
+// ESP32 → LEE CONTROL PENDIENTE
 app.get("/api/control", (req, res) => {
-  if (!controlPendiente) return res.json({ control: null });
+  if (!controlPendiente) {
+    return res.json({ control: null });
+  }
 
   const ctrl = controlPendiente;
   controlPendiente = null;
-  res.json(ctrl);
+
+  res.json({ control: ctrl }); // ← FORMATO QUE EL ESP32 ESPERA
 });
 
 // =====================================================
-// =============== CONFIGURACIÓN ========================
+// ================= CONFIGURACIÓN ======================
 // =====================================================
 
 // APP → ENVIA CONFIG
 app.post("/api/config", verificarToken, (req, res) => {
   const cfg = req.body;
 
-  if (Object.keys(cfg).length === 0) {
+  if (!cfg || Object.keys(cfg).length === 0) {
     return res.status(400).json({ error: "config vacía" });
   }
 
@@ -106,13 +101,16 @@ app.post("/api/config", verificarToken, (req, res) => {
   res.json({ status: "config guardada" });
 });
 
-// ESP32 → LEE CONFIG
+// ESP32 → LEE CONFIG PENDIENTE
 app.get("/api/config", (req, res) => {
-  if (!configPendiente) return res.json({ config: null });
+  if (!configPendiente) {
+    return res.json({ config: null });
+  }
 
   const cfg = configPendiente;
   configPendiente = null;
-  res.json(cfg);
+
+  res.json({ config: cfg }); // ← FORMATO QUE EL ESP32 ESPERA
 });
 
 // =====================================================
@@ -122,4 +120,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto", PORT);
 });
-
