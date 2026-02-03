@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: appbomba
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node index.js"
+    envVars:
+      NODE_ENV: production
+    routes:
+      - type: http
+        source: /
+        target: /
+    forceHttps: false
