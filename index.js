@@ -1,5 +1,5 @@
-// =======================================
 // Servidor Render – Control ESP32 Tanque
+// Version unificada con API LOCAL
 // =======================================
 
 const express = require("express");
@@ -11,9 +11,8 @@ const TOKEN = "A9F3K2X7";
 // -------- ESTADO GLOBAL --------
 let estadoActual = null;
 
-let comandoPendiente = null; // ON / OFF
-let modoPendiente = null;    // AUTO / MANUAL
-let configPendiente = null;  // minPozo, minTanque, maxTanque
+let controlPendiente = null;  // modo_auto, bomba
+let configPendiente = null;   // min_pozo, min_tanque, max_tanque, profundidad, altura
 
 // -------- MIDDLEWARE --------
 app.use(express.json());
@@ -21,21 +20,21 @@ app.use(express.json());
 function verificarToken(req, res, next) {
   const token = req.headers["x-auth-token"];
   if (!token || token !== TOKEN) {
-    return res.status(401).json({ error: "Token inválido o ausente" });
+    return res.status(401).json({ error: "Token invalido o ausente" });
   }
   next();
 }
 
-// -------- RUTAS --------
-
-// Test
+// TEST
 app.get("/", (req, res) => {
   res.send("Servidor ESP32 Tanque activo");
 });
 
-// ================= DATOS =================
+// =====================================================
+// =============== TELEMETRIA ===========================
+// =====================================================
 
-// ESP32 → ENVÍA ESTADO
+// ESP32 → ENVIA ESTADO
 app.post("/api/datos", (req, res) => {
   const data = req.body;
 
@@ -53,88 +52,72 @@ app.post("/api/datos", (req, res) => {
 
 // APP → LEE ESTADO
 app.get("/api/datos", verificarToken, (req, res) => {
-  if (!estadoActual) {
-    return res.status(404).json({ error: "Aún no hay datos" });
-  }
+  if (!estadoActual) return res.status(404).json({ error: "aún no hay datos" });
   res.json(estadoActual);
 });
 
-// ================= COMANDO BOMBA =================
+// =====================================================
+// =============== CONTROL (modo / bomba) ===============
+// =====================================================
 
-// APP → ENVÍA COMANDO
-app.post("/api/comando", verificarToken, (req, res) => {
-  const { cmd } = req.body;
-
-  if (cmd !== "ON" && cmd !== "OFF") {
-    return res.status(400).json({ error: "Comando inválido" });
-  }
-
-  comandoPendiente = cmd;
-  res.json({ status: "comando guardado" });
-});
-
-// ESP32 → CONSULTA COMANDO
-app.get("/api/comando", (req, res) => {
-  if (!comandoPendiente) {
-    return res.json({ cmd: "NONE" });
-  }
-
-  const cmd = comandoPendiente;
-  comandoPendiente = null;
-  res.json({ cmd });
-});
-
-// ================= MODO =================
-
-app.post("/api/modo", verificarToken, (req, res) => {
-  const { modo } = req.body;
-
-  if (modo !== "AUTO" && modo !== "MANUAL") {
-    return res.status(400).json({ error: "Modo inválido" });
-  }
-
-  modoPendiente = modo;
-  res.json({ status: "modo guardado" });
-});
-
-app.get("/api/modo", (req, res) => {
-  if (!modoPendiente) {
-    return res.json({ modo: "NONE" });
-  }
-
-  const modo = modoPendiente;
-  modoPendiente = null;
-  res.json({ modo });
-});
-
-// ================= CONFIG =================
-
-app.post("/api/config", verificarToken, (req, res) => {
-  const { minPozo, minTanque, maxTanque } = req.body;
+// APP → ENVIA CONTROL (igual que local)
+app.post("/api/control", verificarToken, (req, res) => {
+  const payload = req.body;
 
   if (
-    typeof minPozo !== "number" ||
-    typeof minTanque !== "number" ||
-    typeof maxTanque !== "number"
+    !payload ||
+    (
+      !payload.hasOwnProperty("modo_auto") &&
+      !payload.hasOwnProperty("bomba")
+    )
   ) {
-    return res.status(400).json({ error: "Configuración inválida" });
+    return res.status(400).json({ error: "payload inválido" });
   }
 
-  configPendiente = { minPozo, minTanque, maxTanque };
+  // Se guarda como pendiente
+  controlPendiente = payload;
+
+  res.json({ status: "control guardado" });
+});
+
+// ESP32 → LEE PENDIENTE
+app.get("/api/control", (req, res) => {
+  if (!controlPendiente) return res.json({ control: null });
+
+  const ctrl = controlPendiente;
+  controlPendiente = null;
+  res.json(ctrl);
+});
+
+// =====================================================
+// =============== CONFIGURACIÓN ========================
+// =====================================================
+
+// APP → ENVIA CONFIG
+app.post("/api/config", verificarToken, (req, res) => {
+  const cfg = req.body;
+
+  if (Object.keys(cfg).length === 0) {
+    return res.status(400).json({ error: "config vacía" });
+  }
+
+  configPendiente = cfg;
+
   res.json({ status: "config guardada" });
 });
 
+// ESP32 → LEE CONFIG
 app.get("/api/config", (req, res) => {
-  if (!configPendiente) {
-    return res.json({ config: null });
-  }
+  if (!configPendiente) return res.json({ config: null });
 
   const cfg = configPendiente;
   configPendiente = null;
   res.json(cfg);
 });
 
-// -------- INICIAR --------
+// =====================================================
+// INICIAR SERVIDOR
+// =====================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto", PORT);
