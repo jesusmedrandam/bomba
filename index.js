@@ -1,184 +1,109 @@
-/*******************************************************
- * Servidor Render - Control remoto para ESP32 Maestro
- * Compatible 100% con los mismos endpoint del maestro
- * No maneja WiFi
- *******************************************************/
+import express from "express";
+import fetch from "node-fetch";
 
-const express = require("express");
 const app = express();
-const cors = require("cors");
-const axios = require("axios");
-
-app.use(cors());
 app.use(express.json());
 
-// TOKEN único
-const AUTH_CODE = "A9F3K2X7";
-
-// Última IP del maestro reportada
-let MASTER_IP = null;
-
-// Último estado recibido del ESP32
-let lastState = {
-    nivel_pozo: null,
-    nivel_tanque: null,
-    conexion_pozo: null,
-    bomba: null,
-    modo: null,
-    min_pozo: null,
-    min_tanque: null,
-    max_tanque: null,
-    prof_pozo: null,
-    alt_tanque: null,
+/* ============================================================
+   ALMACENAMIENTO DEL ÚLTIMO ESTADO RECIBIDO DEL ESP32
+   ============================================================ */
+let ultimoEstado = {
+    recibido: false,
+    fecha: null,
+    datos: {}
 };
 
-// ==========================================
-//        VALIDAR TOKEN
-// ==========================================
-
-function validarToken(req, res) {
-    const token =
-        req.headers["x-auth-token"] ||
-        req.query.auth ||
-        req.body.auth ||
-        null;
-
-    return token === AUTH_CODE;
-}
-
-// ==========================================
-//  1) Endpoint para recibir datos desde ESP32
-// ==========================================
-
+/* ============================================================
+   1) RECIBE ESTADO DEL ESP32
+   ============================================================ */
 app.post("/api/render/update", (req, res) => {
-    if (!validarToken(req, res))
-        return res.status(401).json({ error: "token invalido" });
+    ultimoEstado = {
+        recibido: true,
+        fecha: new Date().toISOString(),
+        datos: req.body
+    };
 
-    // Datos enviados por el maestro
-    const data = req.body;
-
-    if (data.ip) MASTER_IP = data.ip;
-
-    lastState = { ...lastState, ...data };
-
-    console.log("✔ Datos actualizados desde ESP32:", lastState);
+    console.log(" → Estado recibido del ESP32:");
+    console.log(JSON.stringify(req.body, null, 2));
 
     res.json({ ok: true });
 });
 
-// ==========================================
-//           2) GET /api/datos
-// ==========================================
-
-app.get("/api/datos", async (req, res) => {
-    if (!validarToken(req, res))
-        return res.status(401).json({ error: "token invalido" });
-
-    // Si tenemos IP del maestro, consultamos directamente
-    if (MASTER_IP) {
-        try {
-            const resp = await axios.get(
-                `http://${MASTER_IP}/api/datos?auth=${AUTH_CODE}`,
-                { timeout: 2000 }
-            );
-            lastState = resp.data;
-            return res.json(lastState);
-        } catch (err) {
-            console.log("Maestro no responde, devolviendo último estado");
-        }
+/* ============================================================
+   2) CONSULTAR ESTADO GUARDADO (TU COMANDO GET)
+   ============================================================ */
+app.get("/api/render/status", (req, res) => {
+    if (!ultimoEstado.recibido) {
+        return res.status(404).json({ error: "Aún no hay datos del ESP32" });
     }
 
-    res.json(lastState);
+    res.json(ultimoEstado);
 });
 
-// ==========================================
-//         3) POST /api/config
-// ==========================================
+/* ============================================================
+   3) TEST → LEER DATOS DIRECTO DEL ESP32
+   ============================================================ */
+app.post("/test/datos", async (req, res) => {
+    const { ip } = req.body;
 
-app.post("/api/config", async (req, res) => {
-    if (!validarToken(req, res))
-        return res.status(401).json({ error: "token invalido" });
+    const r = await fetch(`http://${ip}/api/datos?auth=A9F3K2X7`);
+    const j = await r.json();
 
-    if (!MASTER_IP)
-        return res.status(500).json({ error: "maestro no conectado" });
-
-    try {
-        const resp = await axios.post(
-            `http://${MASTER_IP}/api/config?auth=${AUTH_CODE}`,
-            req.body,
-            { timeout: 3000 }
-        );
-
-        return res.json(resp.data);
-
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ error: "no se pudo enviar config al maestro" });
-    }
+    res.json(j);
 });
 
-// ==========================================
-//         4) POST /api/modo
-// ==========================================
+/* ============================================================
+   4) TEST → ENCENDER / APAGAR
+   ============================================================ */
+app.post("/test/comando", async (req, res) => {
+    const { ip, cmd } = req.body;
 
-app.post("/api/modo", async (req, res) => {
-    if (!validarToken(req, res))
-        return res.status(401).json({ error: "token invalido" });
+    const r = await fetch(`http://${ip}/api/comando?auth=A9F3K2X7`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cmd })
+    });
 
-    if (!MASTER_IP)
-        return res.status(500).json({ error: "maestro no conectado" });
-
-    try {
-        const resp = await axios.post(
-            `http://${MASTER_IP}/api/modo?auth=${AUTH_CODE}`,
-            req.body,
-            { timeout: 3000 }
-        );
-
-        return res.json(resp.data);
-
-    } catch (err) {
-        return res.status(500).json({ error: "no se pudo cambiar modo" });
-    }
+    const j = await r.json();
+    res.json(j);
 });
 
-// ==========================================
-//         5) POST /api/comando
-// ==========================================
+/* ============================================================
+   5) TEST → CAMBIAR MODO
+   ============================================================ */
+app.post("/test/modo", async (req, res) => {
+    const { ip, modo } = req.body;
 
-app.post("/api/comando", async (req, res) => {
-    if (!validarToken(req, res))
-        return res.status(401).json({ error: "token invalido" });
+    const r = await fetch(`http://${ip}/api/modo?auth=A9F3K2X7`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modo })
+    });
 
-    if (!MASTER_IP)
-        return res.status(500).json({ error: "maestro no conectado" });
-
-    try {
-        const resp = await axios.post(
-            `http://${MASTER_IP}/api/comando?auth=${AUTH_CODE}`,
-            req.body,
-            { timeout: 3000 }
-        );
-
-        return res.json(resp.data);
-
-    } catch (err) {
-        return res.status(500).json({ error: "no se pudo ejecutar comando" });
-    }
+    const j = await r.json();
+    res.json(j);
 });
 
-// ==========================================
-//      RAÍZ DEL SERVIDOR (Render)
-// ==========================================
+/* ============================================================
+   6) TEST → MODIFICAR CONFIG (min, max, etc.)
+   ============================================================ */
+app.post("/test/config", async (req, res) => {
+    const { ip, config } = req.body;
 
-app.get("/", (req, res) => {
-    res.send("Servidor ESP32 Tanque activo");
+    const r = await fetch(`http://${ip}/api/config?auth=A9F3K2X7`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config)
+    });
+
+    const j = await r.json();
+    res.json(j);
 });
 
-// ==========================================
-//            INICIAR SERVIDOR
-// ==========================================
-
+/* ============================================================
+   INICIAR SERVIDOR RENDER
+   ============================================================ */
 app.listen(3000, () => {
     console.log("Servidor Render escuchando en puerto 3000");
 });
+
