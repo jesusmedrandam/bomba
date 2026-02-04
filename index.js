@@ -1,20 +1,27 @@
 import express from "express";
-
 const app = express();
 app.use(express.json());
 
 /* ============================================================
-   ALMACENAMIENTO DEL ÚLTIMO ESTADO RECIBIDO DEL ESP32
+   VARIABLES EN MEMORIA (estado y último comando)
    ============================================================ */
+
 let ultimoEstado = {
     recibido: false,
     fecha: null,
     datos: {}
 };
 
+let ultimoComando = {
+    fecha: null,
+    cmd: null
+};
+
+
 /* ============================================================
-   1) RECIBE ESTADO DEL ESP32
+   1) RECIBIR ESTADO DEL ESP32 (TANQUE)
    ============================================================ */
+
 app.post("/api/render/update", (req, res) => {
     ultimoEstado = {
         recibido: true,
@@ -22,103 +29,70 @@ app.post("/api/render/update", (req, res) => {
         datos: req.body
     };
 
-    console.log(" → Estado recibido del ESP32:");
+    console.log("→ Estado recibido del ESP32:");
     console.log(JSON.stringify(req.body, null, 2));
 
     res.json({ ok: true });
 });
 
+
 /* ============================================================
-   2) CONSULTAR ESTADO GUARDADO (TU COMANDO GET)
+   2) CONSULTAR ESTADO (APP / PC / TEST)
    ============================================================ */
+
 app.get("/api/render/status", (req, res) => {
     if (!ultimoEstado.recibido) {
-        return res.status(404).json({ error: "Aún no hay datos del ESP32" });
+        return res.status(404).json({ error: "Aún no hay datos" });
     }
 
     res.json(ultimoEstado);
 });
 
+
 /* ============================================================
-   3) TEST → LEER DATOS DIRECTO DEL ESP32
+   3) RECIBIR COMANDO DESDE ANDROID / PC / TEST
    ============================================================ */
-app.post("/test/datos", async (req, res) => {
-    try {
-        const { ip } = req.body;
 
-        const r = await fetch(`http://${ip}/api/datos?auth=A9F3K2X7`);
-        const j = await r.json();
-
-        res.json(j);
-    } catch (e) {
-        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+app.post("/api/render/cmd", (req, res) => {
+    const token = req.body.auth;
+    if (token !== "A9F3K2X7") {
+        return res.status(401).json({ error: "token" });
     }
+
+    ultimoComando = {
+        fecha: new Date().toISOString(),
+        cmd: req.body.cmd
+    };
+
+    console.log("→ Nuevo comando recibido:", req.body.cmd);
+
+    res.json({ ok: true });
 });
 
+
 /* ============================================================
-   4) TEST → ENCENDER / APAGAR
+   4) ESP32 CONSULTA EL COMANDO
    ============================================================ */
-app.post("/test/comando", async (req, res) => {
-    try {
-        const { ip, cmd } = req.body;
 
-        const r = await fetch(`http://${ip}/api/comando?auth=A9F3K2X7`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cmd })
-        });
-
-        const j = await r.json();
-        res.json(j);
-    } catch (e) {
-        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+app.get("/api/render/cmd", (req, res) => {
+    const token = req.query.auth;
+    if (token !== "A9F3K2X7") {
+        return res.status(401).json({ error: "token" });
     }
+
+    res.json({
+        cmd: ultimoComando.cmd
+    });
+
+    // Una vez leído, borramos para evitar loops
+    ultimoComando.cmd = null;
 });
 
-/* ============================================================
-   5) TEST → CAMBIAR MODO
-   ============================================================ */
-app.post("/test/modo", async (req, res) => {
-    try {
-        const { ip, modo } = req.body;
-
-        const r = await fetch(`http://${ip}/api/modo?auth=A9F3K2X7`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ modo })
-        });
-
-        const j = await r.json();
-        res.json(j);
-    } catch (e) {
-        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
-    }
-});
 
 /* ============================================================
-   6) TEST → MODIFICAR CONFIG (min, max, etc.)
+   INICIO SERVIDOR
    ============================================================ */
-app.post("/test/config", async (req, res) => {
-    try {
-        const { ip, config } = req.body;
 
-        const r = await fetch(`http://${ip}/api/config?auth=A9F3K2X7`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(config)
-        });
-
-        const j = await r.json();
-        res.json(j);
-    } catch (e) {
-        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
-    }
-});
-
-/* ============================================================
-   INICIAR SERVIDOR RENDER
-   ============================================================ */
 app.listen(3000, () => {
     console.log("Servidor Render escuchando en puerto 3000");
 });
-
