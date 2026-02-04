@@ -1,136 +1,184 @@
-// Servidor Render – Control ESP32 Tanque
-// Version unificada con API LOCAL
-// =======================================
+/*******************************************************
+ * Servidor Render - Control remoto para ESP32 Maestro
+ * Compatible 100% con los mismos endpoint del maestro
+ * No maneja WiFi
+ *******************************************************/
 
 const express = require("express");
 const app = express();
+const cors = require("cors");
+const axios = require("axios");
 
-// -------- CONFIGURACIÓN --------
-const TOKEN = "A9F3K2X7";
-
-// -------- ESTADO GLOBAL --------
-let estadoActual = null;
-
-let controlPendiente = null;  // { modo_auto, bomba }
-let configPendiente = null;   // { min_pozo, min_tanque, max_tanque, prof_pozo, alt_tanque }
-
-// -------- MIDDLEWARE --------
+app.use(cors());
 app.use(express.json());
 
-function verificarToken(req, res, next) {
-  const token = req.headers["x-auth-token"];
-  if (!token || token !== TOKEN) {
-    return res.status(401).json({ error: "Token inválido o ausente" });
-  }
-  next();
+// TOKEN único
+const AUTH_CODE = "A9F3K2X7";
+
+// Última IP del maestro reportada
+let MASTER_IP = null;
+
+// Último estado recibido del ESP32
+let lastState = {
+    nivel_pozo: null,
+    nivel_tanque: null,
+    conexion_pozo: null,
+    bomba: null,
+    modo: null,
+    min_pozo: null,
+    min_tanque: null,
+    max_tanque: null,
+    prof_pozo: null,
+    alt_tanque: null,
+};
+
+// ==========================================
+//        VALIDAR TOKEN
+// ==========================================
+
+function validarToken(req, res) {
+    const token =
+        req.headers["x-auth-token"] ||
+        req.query.auth ||
+        req.body.auth ||
+        null;
+
+    return token === AUTH_CODE;
 }
 
-// TEST
+// ==========================================
+//  1) Endpoint para recibir datos desde ESP32
+// ==========================================
+
+app.post("/api/render/update", (req, res) => {
+    if (!validarToken(req, res))
+        return res.status(401).json({ error: "token invalido" });
+
+    // Datos enviados por el maestro
+    const data = req.body;
+
+    if (data.ip) MASTER_IP = data.ip;
+
+    lastState = { ...lastState, ...data };
+
+    console.log("✔ Datos actualizados desde ESP32:", lastState);
+
+    res.json({ ok: true });
+});
+
+// ==========================================
+//           2) GET /api/datos
+// ==========================================
+
+app.get("/api/datos", async (req, res) => {
+    if (!validarToken(req, res))
+        return res.status(401).json({ error: "token invalido" });
+
+    // Si tenemos IP del maestro, consultamos directamente
+    if (MASTER_IP) {
+        try {
+            const resp = await axios.get(
+                `http://${MASTER_IP}/api/datos?auth=${AUTH_CODE}`,
+                { timeout: 2000 }
+            );
+            lastState = resp.data;
+            return res.json(lastState);
+        } catch (err) {
+            console.log("Maestro no responde, devolviendo último estado");
+        }
+    }
+
+    res.json(lastState);
+});
+
+// ==========================================
+//         3) POST /api/config
+// ==========================================
+
+app.post("/api/config", async (req, res) => {
+    if (!validarToken(req, res))
+        return res.status(401).json({ error: "token invalido" });
+
+    if (!MASTER_IP)
+        return res.status(500).json({ error: "maestro no conectado" });
+
+    try {
+        const resp = await axios.post(
+            `http://${MASTER_IP}/api/config?auth=${AUTH_CODE}`,
+            req.body,
+            { timeout: 3000 }
+        );
+
+        return res.json(resp.data);
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ error: "no se pudo enviar config al maestro" });
+    }
+});
+
+// ==========================================
+//         4) POST /api/modo
+// ==========================================
+
+app.post("/api/modo", async (req, res) => {
+    if (!validarToken(req, res))
+        return res.status(401).json({ error: "token invalido" });
+
+    if (!MASTER_IP)
+        return res.status(500).json({ error: "maestro no conectado" });
+
+    try {
+        const resp = await axios.post(
+            `http://${MASTER_IP}/api/modo?auth=${AUTH_CODE}`,
+            req.body,
+            { timeout: 3000 }
+        );
+
+        return res.json(resp.data);
+
+    } catch (err) {
+        return res.status(500).json({ error: "no se pudo cambiar modo" });
+    }
+});
+
+// ==========================================
+//         5) POST /api/comando
+// ==========================================
+
+app.post("/api/comando", async (req, res) => {
+    if (!validarToken(req, res))
+        return res.status(401).json({ error: "token invalido" });
+
+    if (!MASTER_IP)
+        return res.status(500).json({ error: "maestro no conectado" });
+
+    try {
+        const resp = await axios.post(
+            `http://${MASTER_IP}/api/comando?auth=${AUTH_CODE}`,
+            req.body,
+            { timeout: 3000 }
+        );
+
+        return res.json(resp.data);
+
+    } catch (err) {
+        return res.status(500).json({ error: "no se pudo ejecutar comando" });
+    }
+});
+
+// ==========================================
+//      RAÍZ DEL SERVIDOR (Render)
+// ==========================================
+
 app.get("/", (req, res) => {
-  res.send("Servidor ESP32 Tanque activo");
+    res.send("Servidor ESP32 Tanque activo");
 });
 
-// =====================================================
-// ================= TELEMETRIA ========================
-// =====================================================
+// ==========================================
+//            INICIAR SERVIDOR
+// ==========================================
 
-// ESP32 → ENVIA ESTADO
-app.post("/api/datos", (req, res) => {
-  const data = req.body;
-
-  if (!data || data.auth !== TOKEN) {
-    return res.status(401).json({ error: "Token inválido" });
-  }
-
-  estadoActual = { ...data, timestamp: Date.now() };
-  res.json({ status: "ok" });
+app.listen(3000, () => {
+    console.log("Servidor Render escuchando en puerto 3000");
 });
-
-// APP / PC → LEE ESTADO  (CORREGIDO)
-app.get("/api/datos", (req, res) => {
-  // Token desde query o header
-  const token =
-    req.headers["x-auth-token"] ||
-    req.query.auth;
-
-  if (!token || token !== TOKEN) {
-    return res.status(401).json({ error: "Token inválido" });
-  }
-
-  if (!estadoActual) {
-    return res.status(404).json({ error: "aún no hay datos" });
-  }
-
-  res.json(estadoActual);
-});
-
-// =====================================================
-// ================= CONTROL ===========================
-// =====================================================
-
-// APP → ENVIA CONTROL
-app.post("/api/control", verificarToken, (req, res) => {
-  const payload = req.body;
-
-  if (
-    !payload ||
-    (!payload.hasOwnProperty("modo_auto") &&
-     !payload.hasOwnProperty("bomba"))
-  ) {
-    return res.status(400).json({ error: "payload inválido" });
-  }
-
-  controlPendiente = payload;
-
-  res.json({ status: "control guardado" });
-});
-
-// ESP32 → LEE CONTROL PENDIENTE
-app.get("/api/control", (req, res) => {
-  if (!controlPendiente) {
-    return res.json({ control: null });
-  }
-
-  const ctrl = controlPendiente;
-  controlPendiente = null;
-
-  res.json({ control: ctrl });
-});
-
-// =====================================================
-// ================= CONFIGURACIÓN ======================
-// =====================================================
-
-// APP → ENVIA CONFIG
-app.post("/api/config", verificarToken, (req, res) => {
-  const cfg = req.body;
-
-  if (!cfg || Object.keys(cfg).length === 0) {
-    return res.status(400).json({ error: "config vacía" });
-  }
-
-  configPendiente = cfg;
-
-  res.json({ status: "config guardada" });
-});
-
-// ESP32 → LEE CONFIG PENDIENTE
-app.get("/api/config", (req, res) => {
-  if (!configPendiente) {
-    return res.json({ config: null });
-  }
-
-  const cfg = configPendiente;
-  configPendiente = null;
-
-  res.json({ config: cfg });
-});
-
-// =====================================================
-// INICIAR SERVIDOR
-// =====================================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Servidor activo en puerto", PORT);
-});
-
