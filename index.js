@@ -1,5 +1,4 @@
 import express from "express";
-import fetch from "node-fetch";
 
 const app = express();
 app.use(express.json());
@@ -44,60 +43,76 @@ app.get("/api/render/status", (req, res) => {
    3) TEST → LEER DATOS DIRECTO DEL ESP32
    ============================================================ */
 app.post("/test/datos", async (req, res) => {
-    const { ip } = req.body;
+    try {
+        const { ip } = req.body;
 
-    const r = await fetch(`http://${ip}/api/datos?auth=A9F3K2X7`);
-    const j = await r.json();
+        const r = await fetch(`http://${ip}/api/datos?auth=A9F3K2X7`);
+        const j = await r.json();
 
-    res.json(j);
+        res.json(j);
+    } catch (e) {
+        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+    }
 });
 
 /* ============================================================
    4) TEST → ENCENDER / APAGAR
    ============================================================ */
 app.post("/test/comando", async (req, res) => {
-    const { ip, cmd } = req.body;
+    try {
+        const { ip, cmd } = req.body;
 
-    const r = await fetch(`http://${ip}/api/comando?auth=A9F3K2X7`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cmd })
-    });
+        const r = await fetch(`http://${ip}/api/comando?auth=A9F3K2X7`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cmd })
+        });
 
-    const j = await r.json();
-    res.json(j);
+        const j = await r.json();
+        res.json(j);
+    } catch (e) {
+        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+    }
 });
 
 /* ============================================================
    5) TEST → CAMBIAR MODO
    ============================================================ */
 app.post("/test/modo", async (req, res) => {
-    const { ip, modo } = req.body;
+    try {
+        const { ip, modo } = req.body;
 
-    const r = await fetch(`http://${ip}/api/modo?auth=A9F3K2X7`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ modo })
-    });
+        const r = await fetch(`http://${ip}/api/modo?auth=A9F3K2X7`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ modo })
+        });
 
-    const j = await r.json();
-    res.json(j);
+        const j = await r.json();
+        res.json(j);
+    } catch (e) {
+        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+    }
 });
 
 /* ============================================================
    6) TEST → MODIFICAR CONFIG (min, max, etc.)
    ============================================================ */
 app.post("/test/config", async (req, res) => {
-    const { ip, config } = req.body;
+    try {
+        const { ip, config } = req.body;
 
-    const r = await fetch(`http://${ip}/api/config?auth=A9F3K2X7`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config)
-    });
+        const r = await fetch(`http://${ip}/api/config?auth=A9F3K2X7`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(config)
+        });
 
-    const j = await r.json();
-    res.json(j);
+        const j = await r.json();
+        res.json(j);
+    } catch (e) {
+        res.status(500).json({ error: "Error comunicando con ESP32", detalle: e.message });
+    }
 });
 
 /* ============================================================
