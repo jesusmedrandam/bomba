@@ -1,98 +1,106 @@
+// ===============================
+//  SERVIDOR RENDER — APP BOMBA
+// ===============================
+
 import express from "express";
+import cors from "cors";
+
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-/* ============================================================
-   VARIABLES EN MEMORIA (estado y último comando)
-   ============================================================ */
+// ===============================
+//  VARIABLE GLOBAL : ESTADO + COMANDO
+// ===============================
+let ultimoEstado = null;
+let ultimoComando = null;
+const AUTH = "A9F3K2X7";
 
-let ultimoEstado = {
-    recibido: false,
-    fecha: null,
-    datos: {}
-};
+// ===============================
+//  MID: VALIDAR TOKEN
+// ===============================
+function validarAuth(req) {
+  return (
+    req.query.auth === AUTH ||
+    req.headers["x-auth-token"] === AUTH ||
+    (req.body && req.body.auth === AUTH)
+  );
+}
 
-let ultimoComando = {
-    fecha: null,
-    cmd: null
-};
-
-
-/* ============================================================
-   1) RECIBIR ESTADO DEL ESP32 (TANQUE)
-   ============================================================ */
-
+// ===============================
+//  1) ESP32 → Render : enviar estado
+// ===============================
 app.post("/api/render/update", (req, res) => {
-    ultimoEstado = {
-        recibido: true,
-        fecha: new Date().toISOString(),
-        datos: req.body
-    };
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
 
-    console.log("→ Estado recibido del ESP32:");
-    console.log(JSON.stringify(req.body, null, 2));
+  ultimoEstado = {
+    fecha: new Date().toISOString(),
+    datos: req.body,
+  };
 
-    res.json({ ok: true });
+  return res.json({ ok: true });
 });
 
-
-/* ============================================================
-   2) CONSULTAR ESTADO (APP / PC / TEST)
-   ============================================================ */
-
+// ===============================
+//  2) Cliente → Render : leer estado
+// ===============================
 app.get("/api/render/status", (req, res) => {
-    if (!ultimoEstado.recibido) {
-        return res.status(404).json({ error: "Aún no hay datos" });
-    }
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
 
-    res.json(ultimoEstado);
+  if (!ultimoEstado) {
+    return res.json({ recibido: false });
+  }
+
+  return res.json({
+    recibido: true,
+    fecha: ultimoEstado.fecha,
+    datos: ultimoEstado.datos,
+  });
 });
 
-
-/* ============================================================
-   3) RECIBIR COMANDO DESDE ANDROID / PC / TEST
-   ============================================================ */
-
+// ===============================
+//  3) APP → Render : enviar comando
+// ===============================
 app.post("/api/render/cmd", (req, res) => {
-    const token = req.body.auth;
-    if (token !== "A9F3K2X7") {
-        return res.status(401).json({ error: "token" });
-    }
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
 
-    ultimoComando = {
-        fecha: new Date().toISOString(),
-        cmd: req.body.cmd
-    };
+  if (!req.body.cmd) {
+    return res.status(400).json({ error: "falta cmd" });
+  }
 
-    console.log("→ Nuevo comando recibido:", req.body.cmd);
+  ultimoComando = String(req.body.cmd).trim(); // Ej: ON / OFF / AUTO / MANUAL
 
-    res.json({ ok: true });
+  return res.json({ ok: true, cmd: ultimoComando });
 });
 
-
-/* ============================================================
-   4) ESP32 CONSULTA EL COMANDO
-   ============================================================ */
-
+// ===============================
+//  4) ESP32 → Render : leer comando
+// ===============================
 app.get("/api/render/cmd", (req, res) => {
-    const token = req.query.auth;
-    if (token !== "A9F3K2X7") {
-        return res.status(401).json({ error: "token" });
-    }
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
 
-    res.json({
-        cmd: ultimoComando.cmd
-    });
+  if (!ultimoComando) {
+    return res.json({ cmd: null });
+  }
 
-    // Una vez leído, borramos para evitar loops
-    ultimoComando.cmd = null;
+  const cmdTemp = ultimoComando;
+  ultimoComando = null; // Se borra después de entregar
+
+  return res.json({ cmd: cmdTemp });
 });
 
-
-/* ============================================================
-   INICIO SERVIDOR
-   ============================================================ */
-
-app.listen(3000, () => {
-    console.log("Servidor Render escuchando en puerto 3000");
+// ===============================
+//  INICIO SERVIDOR
+// ===============================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Servidor Render escuchando en puerto " + PORT);
 });
