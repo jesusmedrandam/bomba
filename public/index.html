@@ -1,47 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Panel Bomba Remoto</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Acceso Sistema Bomba</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="card">
+    <h2>Sistema de Monitoreo</h2>
+    <input type="text" id="token" placeholder="Ingrese token">
+    <button onclick="entrar()">Ingresar</button>
+    <p id="error"></p>
+  </div>
 
-<div class="card">
-    <h2>Estado del Sistema</h2>
-    <pre id="estado">Cargando...</pre>
-</div>
+<script>
+function entrar() {
+  const token = document.getElementById("token").value;
 
-<div class="controls">
-    <button onclick="encender()">Encender</button>
-    <button onclick="apagar()">Apagar</button>
+  if (!token) {
+    document.getElementById("error").innerText = "Ingrese un token";
+    return;
+  }
 
-    <button onclick="modoAuto()">Modo Automático</button>
-    <button onclick="modoManual()">Modo Manual</button>
-</div>
-
-<div class="card">
-    <h2>Actualizar parámetros</h2>
-
-    <label>Mínimo pozo:</label>
-    <input id="min_pozo" type="number">
-
-    <label>Mínimo tanque:</label>
-    <input id="min_tanque" type="number">
-
-    <label>Máximo tanque:</label>
-    <input id="max_tanque" type="number">
-
-    <label>Altura tanque (m):</label>
-    <input id="alt_tanque" type="number" step="0.1">
-
-    <label>Profundidad pozo (m):</label>
-    <input id="prof_pozo" type="number" step="0.1">
-
-    <button onclick="guardarConfig()">Guardar cambios</button>
-</div>
-
-<script src="app.js"></script>
+  sessionStorage.setItem("auth", token);
+  window.location.href = "/dashboard.html";
+}
+</script>
 
 </body>
 </html>
