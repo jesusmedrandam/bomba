@@ -2,15 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Estado Bomba</title>
+  <title>Panel de Control</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <h2>Estado del Sistema</h2>
-    <div id="estado">Cargando...</div>
-    <button onclick="salir()">Cerrar sesión</button>
+
+<div class="dashboard">
+
+  <div class="header">
+    <h1>💧 Panel de Monitoreo</h1>
+    <button class="logout" onclick="salir()">Cerrar sesión</button>
   </div>
+
+  <div class="grid">
+
+    <div class="card glass">
+      <h3>Tanque</h3>
+      <div class="progress">
+        <div class="progress-bar" id="tanqueBar"></div>
+      </div>
+      <p id="tanqueText">--%</p>
+    </div>
+
+    <div class="card glass">
+      <h3>Pozo</h3>
+      <div class="progress">
+        <div class="progress-bar" id="pozoBar"></div>
+      </div>
+      <p id="pozoText">--%</p>
+    </div>
+
+    <div class="card glass center">
+      <h3>Bomba</h3>
+      <div id="bombaEstado" class="status off">APAGADA</div>
+      <p id="modoText">Modo: --</p>
+    </div>
+
+    <div class="card glass center">
+      <h3>Última actualización</h3>
+      <p id="fechaText">Cargando...</p>
+    </div>
+
+  </div>
+
+</div>
 
 <script src="script.js"></script>
 </body>
