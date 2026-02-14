@@ -13,22 +13,41 @@ function cargarEstado() {
     .then(data => {
 
       if (!data.recibido) {
-        document.getElementById("estado").innerHTML = "Sin datos aún...";
         return;
       }
 
       const d = data.datos;
 
-      document.getElementById("estado").innerHTML = `
-        <p><strong>Fecha:</strong> ${data.fecha}</p>
-        <p><strong>Tanque:</strong> ${d.tanque}%</p>
-        <p><strong>Pozo:</strong> ${d.pozo}%</p>
-        <p><strong>Bomba:</strong> ${d.bomba}</p>
-        <p><strong>Modo:</strong> ${d.modo}</p>
-      `;
+      // TANQUE
+      document.getElementById("tanqueBar").style.width = d.tanque + "%";
+      document.getElementById("tanqueText").innerText = d.tanque + "%";
+
+      // POZO
+      document.getElementById("pozoBar").style.width = d.pozo + "%";
+      document.getElementById("pozoText").innerText = d.pozo + "%";
+
+      // BOMBA
+      const bomba = document.getElementById("bombaEstado");
+
+      if (d.bomba === "ON" || d.bomba === true) {
+        bomba.classList.remove("off");
+        bomba.classList.add("on");
+        bomba.innerText = "ENCENDIDA";
+      } else {
+        bomba.classList.remove("on");
+        bomba.classList.add("off");
+        bomba.innerText = "APAGADA";
+      }
+
+      // MODO
+      document.getElementById("modoText").innerText = "Modo: " + d.modo;
+
+      // FECHA
+      document.getElementById("fechaText").innerText = new Date(data.fecha).toLocaleString();
+
     })
     .catch(err => {
-      document.getElementById("estado").innerHTML = err.message;
+      console.log(err.message);
     });
 }
 
