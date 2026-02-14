@@ -2,23 +2,40 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Acceso Sistema Bomba</title>
+  <title>Sistema Bomba</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <h2>Sistema de Monitoreo</h2>
-    <input type="text" id="token" placeholder="Ingrese token">
-    <button onclick="entrar()">Ingresar</button>
+
+<div class="wrapper">
+
+  <div class="card glass">
+    <h1>💧 Sistema de Control</h1>
+    <p class="subtitle">Monitoreo inteligente de bomba</p>
+
+    <input type="text" id="token" placeholder="Ingrese su token de acceso">
+    <button class="primary" onclick="entrar()">Ingresar</button>
+
+    <div class="divider"></div>
+
+    <a href="/app/app-bomba.apk" download>
+      <button class="download">
+        📲 Descargar App Android
+        <span class="version">v1.0</span>
+      </button>
+    </a>
+
     <p id="error"></p>
   </div>
+
+</div>
 
 <script>
 function entrar() {
   const token = document.getElementById("token").value;
 
   if (!token) {
-    document.getElementById("error").innerText = "Ingrese un token";
+    document.getElementById("error").innerText = "Ingrese un token válido";
     return;
   }
 
