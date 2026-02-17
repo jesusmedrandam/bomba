@@ -5,11 +5,10 @@
 import express from "express";
 import cors from "cors";
 import admin from "firebase-admin";
-import serviceAccount from "./serviceAccountKey.json" assert { type: "json" };
 
-// ===============================
-//  INICIALIZAR FIREBASE
-// ===============================
+// 🔥 Leer credenciales Firebase desde variable de entorno
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -28,7 +27,7 @@ app.use(express.static("public"));
 let ultimoEstado = null;
 let ultimoComando = null;
 let deviceTokens = [];
-let ultimaAlerta = null; // 🔥 evita notificaciones repetidas
+let ultimaAlerta = null;
 
 const AUTH = "A9F3K2X7";
 
@@ -53,9 +52,7 @@ async function enviarPush(mensaje) {
     return;
   }
 
-  if (mensaje === ultimaAlerta) {
-    return; // evita repetir misma alerta
-  }
+  if (mensaje === ultimaAlerta) return;
 
   ultimaAlerta = mensaje;
 
@@ -68,13 +65,14 @@ async function enviarPush(mensaje) {
   };
 
   try {
+
     const response = await admin.messaging().sendEachForMulticast(message);
 
-    // 🔥 limpiar tokens inválidos
-    response.responses.forEach((resp, idx) => {
+    // 🔥 eliminar tokens inválidos
+    response.responses.forEach((resp, index) => {
       if (!resp.success) {
-        console.log("❌ Token inválido eliminado:", deviceTokens[idx]);
-        deviceTokens.splice(idx, 1);
+        console.log("❌ Token inválido eliminado:", deviceTokens[index]);
+        deviceTokens.splice(index, 1);
       }
     });
 
@@ -86,7 +84,7 @@ async function enviarPush(mensaje) {
 }
 
 // ===============================
-//  1) ESP32 → Render : enviar estado
+//  ESP32 → Render : enviar estado
 // ===============================
 app.post("/api/render/update", async (req, res) => {
 
@@ -133,7 +131,7 @@ app.post("/api/render/update", async (req, res) => {
 });
 
 // ===============================
-//  2) Cliente → Render : leer estado
+//  Cliente → Render : leer estado
 // ===============================
 app.get("/api/render/status", (req, res) => {
 
@@ -153,7 +151,7 @@ app.get("/api/render/status", (req, res) => {
 });
 
 // ===============================
-//  3) APP → Render : enviar comando
+//  APP → Render : enviar comando
 // ===============================
 app.post("/api/render/cmd", (req, res) => {
 
@@ -171,7 +169,7 @@ app.post("/api/render/cmd", (req, res) => {
 });
 
 // ===============================
-//  4) ESP32 → Render : leer comando
+//  ESP32 → Render : leer comando
 // ===============================
 app.get("/api/render/cmd", (req, res) => {
 
@@ -190,7 +188,7 @@ app.get("/api/render/cmd", (req, res) => {
 });
 
 // ===============================
-//  5) APP → Render : registrar token FCM
+//  APP → Render : registrar token
 // ===============================
 app.post("/api/render/register-token", (req, res) => {
 
