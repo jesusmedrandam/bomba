@@ -57,18 +57,27 @@ async function enviarPush(mensaje) {
   ultimaAlerta = mensaje;
 
   const message = {
+    tokens: deviceTokens,
+
     notification: {
       title: "Bomba",
       body: mensaje,
     },
-    tokens: deviceTokens,
+
+    android: {
+      priority: "high",
+      notification: {
+        channelId: "push_channel",
+        sound: "default",
+        priority: "max"
+      }
+    }
   };
 
   try {
 
     const response = await admin.messaging().sendEachForMulticast(message);
 
-    // 🔥 eliminar tokens inválidos
     response.responses.forEach((resp, index) => {
       if (!resp.success) {
         console.log("❌ Token inválido eliminado:", deviceTokens[index]);
@@ -82,6 +91,7 @@ async function enviarPush(mensaje) {
     console.log("❌ Error enviando push:", error);
   }
 }
+
 
 // ===============================
 //  ESP32 → Render : enviar estado
