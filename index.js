@@ -27,7 +27,8 @@ app.use(express.static("public"));
 // ===============================
 let ultimoEstado = null;
 let ultimoComando = null;
-let deviceTokens = []; // 🔥 Tokens FCM registrados
+let deviceTokens = [];
+let ultimaAlerta = null; // 🔥 evita notificaciones repetidas
 
 const AUTH = "A9F3K2X7";
 
@@ -46,7 +47,17 @@ function validarAuth(req) {
 //  FUNCIÓN: ENVIAR PUSH
 // ===============================
 async function enviarPush(mensaje) {
-  if (deviceTokens.length === 0) return;
+
+  if (deviceTokens.length === 0) {
+    console.log("⚠ No hay dispositivos registrados");
+    return;
+  }
+
+  if (mensaje === ultimaAlerta) {
+    return; // evita repetir misma alerta
+  }
+
+  ultimaAlerta = mensaje;
 
   const message = {
     notification: {
@@ -57,8 +68,18 @@ async function enviarPush(mensaje) {
   };
 
   try {
-    await admin.messaging().sendEachForMulticast(message);
+    const response = await admin.messaging().sendEachForMulticast(message);
+
+    // 🔥 limpiar tokens inválidos
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        console.log("❌ Token inválido eliminado:", deviceTokens[idx]);
+        deviceTokens.splice(idx, 1);
+      }
+    });
+
     console.log("✅ Push enviado:", mensaje);
+
   } catch (error) {
     console.log("❌ Error enviando push:", error);
   }
@@ -68,6 +89,7 @@ async function enviarPush(mensaje) {
 //  1) ESP32 → Render : enviar estado
 // ===============================
 app.post("/api/render/update", async (req, res) => {
+
   if (!validarAuth(req)) {
     return res.status(401).json({ error: "token" });
   }
@@ -81,10 +103,8 @@ app.post("/api/render/update", async (req, res) => {
 
   console.log("📩 Estado recibido:", datos);
 
-  // ===============================
-  //  EVALUAR ALERTAS EN SERVIDOR
-  // ===============================
   try {
+
     if (datos.nivel_tanque <= datos.min_tanque) {
       await enviarPush("⚠ Tanque en nivel mínimo");
     }
@@ -116,6 +136,7 @@ app.post("/api/render/update", async (req, res) => {
 //  2) Cliente → Render : leer estado
 // ===============================
 app.get("/api/render/status", (req, res) => {
+
   if (!validarAuth(req)) {
     return res.status(401).json({ error: "token" });
   }
@@ -135,6 +156,7 @@ app.get("/api/render/status", (req, res) => {
 //  3) APP → Render : enviar comando
 // ===============================
 app.post("/api/render/cmd", (req, res) => {
+
   if (!validarAuth(req)) {
     return res.status(401).json({ error: "token" });
   }
@@ -152,6 +174,7 @@ app.post("/api/render/cmd", (req, res) => {
 //  4) ESP32 → Render : leer comando
 // ===============================
 app.get("/api/render/cmd", (req, res) => {
+
   if (!validarAuth(req)) {
     return res.status(401).json({ error: "token" });
   }
@@ -170,6 +193,7 @@ app.get("/api/render/cmd", (req, res) => {
 //  5) APP → Render : registrar token FCM
 // ===============================
 app.post("/api/render/register-token", (req, res) => {
+
   if (!validarAuth(req)) {
     return res.status(401).json({ error: "token" });
   }
@@ -189,9 +213,19 @@ app.post("/api/render/register-token", (req, res) => {
 });
 
 // ===============================
+//  TEST PUSH MANUAL
+// ===============================
+app.get("/test-push", async (req, res) => {
+
+  await enviarPush("🔥 Notificación de prueba desde servidor");
+  res.send("Push enviada correctamente");
+});
+
+// ===============================
 //  INICIO SERVIDOR
 // ===============================
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log("🚀 Servidor Render escuchando en puerto " + PORT);
 });
