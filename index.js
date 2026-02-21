@@ -154,7 +154,7 @@ async function evaluarAlertas(datos) {
   if (nivel_pozo === min_pozo) {
     if (!alertas.pozo_min) {
       const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo} La bomba está ${estadoBomba}`);
+      await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo}%. La bomba está ${estadoBomba}`);
       alertas.pozo_min = true;
     }
   } else alertas.pozo_min = false;
@@ -162,28 +162,27 @@ async function evaluarAlertas(datos) {
   if (nivel_pozo < min_pozo) {
     if (!alertas.pozo_muy_bajo) {
       const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(
-        `ALERTA! El pozo está por debajo de su nivel mínimo: ${min_pozo}. La bomba está ${estadoBomba}`
-      );
+      await enviarPush(`ALERTA! Pozo por debajo de su nivel mínimo (${min_pozo}%). Bomba ${estadoBomba}`);
       alertas.pozo_muy_bajo = true;
     }
   } else alertas.pozo_muy_bajo = false;
 
   if (nivel_pozo === 0) {
     if (!alertas.pozo_cero) {
-      await enviarPush(`Posible error sensor del pozo Nivel actual: ${nivel_pozo} %`);
+      await enviarPush(`Posible error en sensor del pozo. Nivel actual: ${nivel_pozo}%`);
       alertas.pozo_cero = true;
     }
   } else alertas.pozo_cero = false;
-
-  // ===============================
+    // ===============================
   //  ALERTAS DE TANQUE
   // ===============================
 
   if (nivel_tanque === min_tanque) {
     if (!alertas.tanque_min) {
       const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(`El tanque alcanzó su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
+      await enviarPush(
+        `El tanque alcanzó su nivel mínimo (${min_tanque}%). La bomba está ${estadoBomba}`
+      );
       alertas.tanque_min = true;
     }
   } else alertas.tanque_min = false;
@@ -191,14 +190,18 @@ async function evaluarAlertas(datos) {
   if (nivel_tanque < min_tanque) {
     if (!alertas.tanque_muy_bajo) {
       const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(`El tanque está por debajo de su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
+      await enviarPush(
+        `ALERTA! Tanque por debajo del mínimo (${min_tanque}%). Bomba ${estadoBomba}`
+      );
       alertas.tanque_muy_bajo = true;
     }
   } else alertas.tanque_muy_bajo = false;
 
   if (nivel_tanque <= 0) {
     if (!alertas.tanque_cero) {
-      await enviarPush(`Posible error en sensor del tanque. Nivel actual: ${nivel_tanque} %`);
+      await enviarPush(
+        `Posible error en sensor del tanque. Nivel actual: ${nivel_tanque}%`
+      );
       alertas.tanque_cero = true;
     }
   } else alertas.tanque_cero = false;
@@ -215,13 +218,15 @@ async function evaluarAlertas(datos) {
   // ===============================
   if (!conexion_pozo) {
     if (!alertas.conexion) {
-      await enviarPush("🚨 Se ha perdido la conexión con el pozo. Por seguridad la bomba se mantendrá apagada");
+      await enviarPush(
+        "🚨 Se perdió la conexión con el pozo. Por seguridad la bomba se apaga"
+      );
       alertas.conexion = true;
     }
   } else alertas.conexion = false;
 
   // ===============================
-  //  MODO MANUAL
+  //  ALERTAS MODO MANUAL
   // ===============================
   if (modo === "MANUAL" && bomba) {
     if (!alertas.manual_on) {
@@ -238,7 +243,7 @@ async function evaluarAlertas(datos) {
   } else alertas.manual_off = false;
 
   // ===============================
-  //  ALERTA DE 5 MINUTOS (MODO AUTOMÁTICO)
+  //  ALERTA 5 MIN SIN SUBIR NIVEL
   // ===============================
   if (modo === "AUTO" && bomba) {
     if (nivelInicialAuto === null) {
@@ -252,7 +257,7 @@ async function evaluarAlertas(datos) {
       if (nivel_tanque <= nivelInicialAuto) {
         if (!alertas.auto_bomba_estancada) {
           await enviarPush(
-            `La bomba lleva 5 minutos encendida y el nivel del tanque se mantiene en ${nivel_tanque}%. Revisa posible falla o fugas.`
+            `La bomba lleva 5 min encendida y el nivel sigue en ${nivel_tanque}%. Posible fuga o falla`
           );
           alertas.auto_bomba_estancada = true;
         }
@@ -323,8 +328,90 @@ app.get("/api/render/status", (req, res) => {
     datos: ultimoEstado.datos,
   });
 });
+// ===============================
+//  APP → Render : enviar comando
+// ===============================
+app.post("/api/render/cmd", (req, res) => {
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
+
+  if (!req.body.cmd) {
+    return res.status(400).json({ error: "falta cmd" });
+  }
+
+  ultimoComando = String(req.body.cmd).trim();
+
+  console.log("👉 Comando recibido:", ultimoComando);
+
+  return res.json({ ok: true, cmd: ultimoComando });
+});
 
 // ===============================
-— FIN DEL MENSAJE —  
-Tu archivo es demasiado largo para un solo envío.  
-Responde **“Siguiente parte”** y te envío el resto (cmd, tokens y NUEVA FUNCIÓN).
+//  ESP32 → Render : leer comando
+// ===============================
+app.get("/api/render/cmd", (req, res) => {
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
+
+  if (!ultimoComando) {
+    return res.json({ cmd: null });
+  }
+
+  const cmdTemp = ultimoComando;
+  ultimoComando = null;
+
+  console.log("📤 Comando entregado al ESP32:", cmdTemp);
+
+  return res.json({ cmd: cmdTemp });
+});
+
+// ===============================
+//  APP → Render : registrar token
+// ===============================
+app.post("/api/render/register-token", (req, res) => {
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token" });
+  }
+
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ error: "falta token" });
+  }
+
+  if (!deviceTokens.includes(token)) {
+    deviceTokens.push(token);
+    console.log("📲 Token registrado:", token);
+  }
+
+  return res.json({ ok: true });
+});
+
+// ===============================
+//  TEST PUSH MANUAL
+// ===============================
+app.get("/test-push", async (req, res) => {
+  await enviarPush("🔥 Notificación de prueba desde servidor");
+  res.send("Push enviada correctamente");
+});
+
+// ===============================
+//  404 — Ruta no encontrada
+// ===============================
+app.use((req, res) => {
+  return res.status(404).json({
+    error: "Ruta no encontrada",
+    path: req.originalUrl
+  });
+});
+
+// ===============================
+//  INICIO SERVIDOR
+// ===============================
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("🚀 Servidor Render escuchando en puerto " + PORT);
+});
