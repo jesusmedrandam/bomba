@@ -134,11 +134,11 @@ async function evaluarAlertas(datos) {
   //  DETECTAR CAMBIOS EN CONFIG
   // ===============================
   const configCambios = [
-    ["min_pozo", "⚙ Se actualizó el nivel mínimo del pozo: ahora es " + min_pozo + "%"],
-    ["min_tanque", "⚙ Se actualizó el nivel mínimo del tanque: ahora es " + min_tanque + "%"],
-    ["max_tanque", "⚙ Se actualizó el nivel máximo del tanque: ahora es " + max_tanque + "%"],
-    ["prof_pozo", "ℹ Se actualizó la profundidad del pozo: ahora es " + prof_pozo + " metro(s)"],
-    ["alt_tanque", "ℹ Se actualizó la altura del tanque: ahora es " + alt_tanque + " metro(s)"],
+    ["min_pozo", "Se actualizó el nivel mínimo del pozo: ahora es " + min_pozo + "%"],
+    ["min_tanque", "Se actualizó el nivel mínimo del tanque: ahora es " + min_tanque + "%"],
+    ["max_tanque", "Se actualizó el nivel máximo del tanque: ahora es " + max_tanque + "%"],
+    ["prof_pozo", "Se actualizó la profundidad del pozo: ahora es " + prof_pozo + " metro(s)"],
+    ["alt_tanque", "Se actualizó la altura del tanque: ahora es " + alt_tanque + " metro(s)"],
   ];
 
   for (const [campo, mensaje] of configCambios) {
@@ -283,6 +283,7 @@ for (const key of Object.keys(memoria)) {
   if (datos[key] !== undefined) {
     memoria[key] = datos[key];
   }
+}
 }
 
 
