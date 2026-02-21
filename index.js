@@ -73,7 +73,7 @@ function validarAuth(req) {
 // ===============================
 //  FUNCIÓN: ENVIAR PUSH
 // ===============================
-async function enviarPush(mensaje) {
+async function enviarPush(titulo, mensaje) {
   if (!mensaje) return;
 
   if (deviceTokens.length === 0) {
@@ -84,7 +84,7 @@ async function enviarPush(mensaje) {
   const message = {
     tokens: deviceTokens,
     notification: {
-      title: "Bomba",
+      title: titulo,
       body: mensaje,
     },
     android: {
@@ -107,7 +107,7 @@ async function enviarPush(mensaje) {
       }
     });
 
-    console.log("✅ Push enviado:", mensaje);
+    console.log(`✅ Push enviado (${titulo}):`, mensaje);
   } catch (error) {
     console.log("❌ Error enviando push:", error);
   }
@@ -130,120 +130,93 @@ async function evaluarAlertas(datos) {
     alt_tanque,
   } = datos;
 
-  // ===============================
-  //  DETECTAR CAMBIOS EN CONFIG
-  // ===============================
-  const configCambios = [
-    ["min_pozo", "Se actualizó el nivel mínimo del pozo: ahora es " + min_pozo + "%"],
-    ["min_tanque", "Se actualizó el nivel mínimo del tanque: ahora es " + min_tanque + "%"],
-    ["max_tanque", "Se actualizó el nivel máximo del tanque: ahora es " + max_tanque + "%"],
-    ["prof_pozo", "Se actualizó la profundidad del pozo: ahora es " + prof_pozo + " metro(s)"],
-    ["alt_tanque", "Se actualizó la altura del tanque: ahora es " + alt_tanque + " metro(s)"],
-  ];
+  const estadoBomba = bomba ? "encendida" : "apagada";
 
-  for (const [campo, mensaje] of configCambios) {
-    if (memoria[campo] !== null && memoria[campo] !== datos[campo]) {
-      await enviarPush(mensaje);
-    }
+  // ===============================
+  //       CAMBIO DE MODO
+  // ===============================
+  if (memoria.modo !== null && memoria.modo !== modo) {
+    const titulo = "Modo cambiado";
+    const cuerpo = modo === "AUTO"
+      ? "El sistema cambió a modo AUTOMÁTICO"
+      : "El sistema cambió a modo MANUAL";
+
+    await enviarPush(titulo, cuerpo);
   }
 
   // ===============================
-  //  ALERTAS DE POZO
+  //      POZO - Alertas
   // ===============================
 
-  if (nivel_pozo === min_pozo) {
-    if (!alertas.pozo_min) {
-      const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo}%. La bomba está ${estadoBomba}`);
-      alertas.pozo_min = true;
-    }
-  } else alertas.pozo_min = false;
+  if (nivel_pozo === min_pozo && !alertas.pozo_min) {
+    await enviarPush("Pozo bajo",
+      `El pozo alcanzó su nivel mínimo (${min_pozo}%). La bomba está ${estadoBomba}.`);
+    alertas.pozo_min = true;
+  } else if (nivel_pozo !== min_pozo) alertas.pozo_min = false;
 
-  if (nivel_pozo < min_pozo) {
-    if (!alertas.pozo_muy_bajo) {
-      const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(`ALERTA! Pozo por debajo de su nivel mínimo (${min_pozo}%). Bomba ${estadoBomba}`);
-      alertas.pozo_muy_bajo = true;
-    }
-  } else alertas.pozo_muy_bajo = false;
+  if (nivel_pozo > 0 && nivel_pozo < min_pozo && !alertas.pozo_muy_bajo) {
+    await enviarPush("Pozo muy bajo",
+      `El pozo está por debajo del mínimo (${min_pozo}%). La bomba está ${estadoBomba}.`);
+    alertas.pozo_muy_bajo = true;
+  } else if (nivel_pozo >= min_pozo) alertas.pozo_muy_bajo = false;
 
-  if (nivel_pozo === 0) {
-    if (!alertas.pozo_cero) {
-      await enviarPush(`Posible error en sensor del pozo. Nivel actual: ${nivel_pozo}%`);
-      alertas.pozo_cero = true;
-    }
-  } else alertas.pozo_cero = false;
-    // ===============================
-  //  ALERTAS DE TANQUE
-  // ===============================
-
-  if (nivel_tanque === min_tanque) {
-    if (!alertas.tanque_min) {
-      const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(
-        `El tanque alcanzó su nivel mínimo (${min_tanque}%). La bomba está ${estadoBomba}`
-      );
-      alertas.tanque_min = true;
-    }
-  } else alertas.tanque_min = false;
-
-  if (nivel_tanque < min_tanque) {
-    if (!alertas.tanque_muy_bajo) {
-      const estadoBomba = bomba ? "encendida" : "apagada";
-      await enviarPush(
-        `ALERTA! Tanque por debajo del mínimo (${min_tanque}%). Bomba ${estadoBomba}`
-      );
-      alertas.tanque_muy_bajo = true;
-    }
-  } else alertas.tanque_muy_bajo = false;
-
-  if (nivel_tanque <= 0) {
-    if (!alertas.tanque_cero) {
-      await enviarPush(
-        `Posible error en sensor del tanque. Nivel actual: ${nivel_tanque}%`
-      );
-      alertas.tanque_cero = true;
-    }
-  } else alertas.tanque_cero = false;
-
-  if (nivel_tanque >= max_tanque) {
-    if (!alertas.tanque_lleno) {
-      await enviarPush("Tanque lleno");
-      alertas.tanque_lleno = true;
-    }
-  } else alertas.tanque_lleno = false;
+  if (nivel_pozo === 0 && !alertas.pozo_cero) {
+    await enviarPush("Error de Sensor",
+      `El sensor del pozo podría estar fallando, nivel actual: ${nivel_pozo}%`);
+    alertas.pozo_cero = true;
+  } else if (nivel_pozo > 0) alertas.pozo_cero = false;
 
   // ===============================
-  //  ALERTAS DE CONEXIÓN
+  //      TANQUE - Alertas
   // ===============================
-  if (!conexion_pozo) {
-    if (!alertas.conexion) {
-      await enviarPush(
-        "🚨 Se perdió la conexión con el pozo. Por seguridad la bomba se apaga"
-      );
-      alertas.conexion = true;
-    }
-  } else alertas.conexion = false;
+
+  if (nivel_tanque === min_tanque && !alertas.tanque_min) {
+    await enviarPush("Tanque bajo",
+      `El tanque alcanzó su nivel mínimo (${min_tanque}%). La bomba está ${estadoBomba}.`);
+    alertas.tanque_min = true;
+  } else if (nivel_tanque !== min_tanque) alertas.tanque_min = false;
+
+  if (nivel_tanque > 0 && nivel_tanque < min_tanque && !alertas.tanque_muy_bajo) {
+    await enviarPush("Tanque muy Bajo",
+      `El tanque está por debajo del nivel mínimo (${min_tanque}%). La bomba está ${estadoBomba}.`);
+    alertas.tanque_muy_bajo = true;
+  } else if (nivel_tanque >= min_tanque) alertas.tanque_muy_bajo = false;
+
+  if (nivel_tanque <= 0 && !alertas.tanque_cero) {
+    await enviarPush("Error de Sensor",
+      `El sensor del tanque podría estar fallando, nivel actual: ${nivel_tanque}%.`);
+    alertas.tanque_cero = true;
+  } else if (nivel_tanque > 0) alertas.tanque_cero = false;
+
+  if (nivel_tanque >= max_tanque && !alertas.tanque_lleno) {
+    await enviarPush("Tanque lleno", "El tanque alcanzó su capacidad máxima.");
+    alertas.tanque_lleno = true;
+  } else if (nivel_tanque < max_tanque) alertas.tanque_lleno = false;
 
   // ===============================
-  //  ALERTAS MODO MANUAL
+  //     CONEXIÓN
   // ===============================
-  if (modo === "MANUAL" && bomba) {
-    if (!alertas.manual_on) {
-      await enviarPush("🔔 Bomba encendida en modo manual");
-      alertas.manual_on = true;
-    }
-  } else alertas.manual_on = false;
-
-  if (modo === "MANUAL" && !bomba) {
-    if (!alertas.manual_off) {
-      await enviarPush("🔔 Bomba apagada en modo manual");
-      alertas.manual_off = true;
-    }
-  } else alertas.manual_off = false;
+  if (!conexion_pozo && !alertas.conexion) {
+    await enviarPush("Sin conexión",
+      "Se ha perdido la conexión con el pozo. La bomba se apagará por seguridad.");
+    alertas.conexion = true;
+  } else if (conexion_pozo) alertas.conexion = false;
 
   // ===============================
-  //  ALERTA 5 MIN SIN SUBIR NIVEL
+  //     MODO MANUAL
+  // ===============================
+  if (modo === "MANUAL" && bomba && !alertas.manual_on) {
+    await enviarPush("Bomba Encendida", "La bomba fue encendida desde modo manual.");
+    alertas.manual_on = true;
+  } else if (!(modo === "MANUAL" && bomba)) alertas.manual_on = false;
+
+  if (modo === "MANUAL" && !bomba && !alertas.manual_off) {
+    await enviarPush("Bomba Apagada", "La bomba fue apagada desde modo manual");
+    alertas.manual_off = true;
+  } else if (!(modo === "MANUAL" && !bomba)) alertas.manual_off = false;
+
+  // ===============================
+  //    5 MIN ENCENDIDA SIN SUBIR
   // ===============================
   if (modo === "AUTO" && bomba) {
     if (nivelInicialAuto === null) {
@@ -254,15 +227,12 @@ async function evaluarAlertas(datos) {
     const diff = Date.now() - tiempoInicioAuto;
 
     if (diff >= 5 * 60 * 1000) {
-      if (nivel_tanque <= nivelInicialAuto) {
-        if (!alertas.auto_bomba_estancada) {
-          await enviarPush(
-            `La bomba lleva 5 min encendida y el nivel sigue en ${nivel_tanque}%. Posible fuga o falla`
-          );
-          alertas.auto_bomba_estancada = true;
-        }
-      } else {
-        alertas.auto_bomba_estancada = false;
+      if (nivel_tanque <= nivelInicialAuto && !alertas.auto_bomba_estancada) {
+        await enviarPush(
+          "Posible Falla",
+          `La bomba lleva 5 minutos encendida y el nivel del tanque sigue en ${nivel_tanque}%. Revisa fugas o fallas.`
+        );
+        alertas.auto_bomba_estancada = true;
       }
 
       nivelInicialAuto = nivel_tanque;
@@ -275,12 +245,10 @@ async function evaluarAlertas(datos) {
   }
 
   // ===============================
-  //  ACTUALIZAR MEMORIA
+  //      ACTUALIZAR MEMORIA
   // ===============================
   for (const key of Object.keys(memoria)) {
-    if (datos[key] !== undefined) {
-      memoria[key] = datos[key];
-    }
+    if (datos[key] !== undefined) memoria[key] = datos[key];
   }
 }
 
