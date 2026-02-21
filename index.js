@@ -154,18 +154,22 @@ async function evaluarAlertas(datos) {
   // Pozo en mínimo
   if (nivel_pozo === min_pozo) {
     if (!alertas.pozo_min) {
-      await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo} La bomba está ${bomba}`);
+      const estadoBomba = bomba ? "encendida" : "apagada"
+      await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo} La bomba está ${estadoBomba}`);
       alertas.pozo_min = true;
     }
   } else alertas.pozo_min = false;
 
   // Pozo muy bajo
   if (nivel_pozo < min_pozo) {
-    if (!alertas.pozo_muy_bajo) {
-      await enviarPush(`ALERTA! El pozo está por debajo de su nivel mínimo. ${min_pozo} La bomba está ${bomba}`);
-      alertas.pozo_muy_bajo = true;
-    }
-  } else alertas.pozo_muy_bajo = false;
+  if (!alertas.pozo_muy_bajo) {
+    const estadoBomba = bomba ? "encendida" : "apagada";
+    await enviarPush(
+      `ALERTA! El pozo está por debajo de su nivel mínimo: ${min_pozo}. La bomba está ${estadoBomba}`
+    );
+    alertas.pozo_muy_bajo = true;
+  }
+}
 
   // Pozo sensor en 0
   if (nivel_pozo === 0) {
@@ -182,7 +186,8 @@ async function evaluarAlertas(datos) {
   // Tanque mínimo
   if (nivel_tanque === min_tanque) {
     if (!alertas.tanque_min) {
-      await enviarPush(`El tanque alcanzó su nivel mínimo. ${min_tanque} La bomba está ${bomba}`);
+      const estadoBomba = bomba ? "encendida" : "apagada"
+      await enviarPush(`El tanque alcanzó su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
       alertas.tanque_min = true;
     }
   } else alertas.tanque_min = false;
@@ -190,7 +195,8 @@ async function evaluarAlertas(datos) {
   // Tanque muy bajo
   if (nivel_tanque < min_tanque) {
     if (!alertas.tanque_muy_bajo) {
-      await enviarPush(`El tanque está por debajo de su nivel mínimo. ${min_tanque} La bomba está ${bomba}`);
+      const estadoBomba = bomba ? "encendida" : "apagada"
+      await enviarPush(`El tanque está por debajo de su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
       alertas.tanque_muy_bajo = true;
     }
   } else alertas.tanque_muy_bajo = false;
@@ -273,8 +279,12 @@ async function evaluarAlertas(datos) {
   // ===============================
   //  ACTUALIZAR MEMORIA
   // ===============================
-  memoria = { ...memoria, ...datos };
+for (const key of Object.keys(memoria)) {
+  if (datos[key] !== undefined) {
+    memoria[key] = datos[key];
+  }
 }
+
 
 // ===============================
 //  ESP32 → Render : enviar estado
