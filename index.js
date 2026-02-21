@@ -151,27 +151,24 @@ async function evaluarAlertas(datos) {
   //  ALERTAS DE POZO
   // ===============================
 
-  // Pozo en mínimo
   if (nivel_pozo === min_pozo) {
     if (!alertas.pozo_min) {
-      const estadoBomba = bomba ? "encendida" : "apagada"
+      const estadoBomba = bomba ? "encendida" : "apagada";
       await enviarPush(`El pozo alcanzó su nivel mínimo. ${min_pozo} La bomba está ${estadoBomba}`);
       alertas.pozo_min = true;
     }
   } else alertas.pozo_min = false;
 
-  // Pozo muy bajo
   if (nivel_pozo < min_pozo) {
-  if (!alertas.pozo_muy_bajo) {
-    const estadoBomba = bomba ? "encendida" : "apagada";
-    await enviarPush(
-      `ALERTA! El pozo está por debajo de su nivel mínimo: ${min_pozo}. La bomba está ${estadoBomba}`
-    );
-    alertas.pozo_muy_bajo = true;
-  }
-}
+    if (!alertas.pozo_muy_bajo) {
+      const estadoBomba = bomba ? "encendida" : "apagada";
+      await enviarPush(
+        `ALERTA! El pozo está por debajo de su nivel mínimo: ${min_pozo}. La bomba está ${estadoBomba}`
+      );
+      alertas.pozo_muy_bajo = true;
+    }
+  } else alertas.pozo_muy_bajo = false;
 
-  // Pozo sensor en 0
   if (nivel_pozo === 0) {
     if (!alertas.pozo_cero) {
       await enviarPush(`Posible error sensor del pozo Nivel actual: ${nivel_pozo} %`);
@@ -183,25 +180,22 @@ async function evaluarAlertas(datos) {
   //  ALERTAS DE TANQUE
   // ===============================
 
-  // Tanque mínimo
   if (nivel_tanque === min_tanque) {
     if (!alertas.tanque_min) {
-      const estadoBomba = bomba ? "encendida" : "apagada"
+      const estadoBomba = bomba ? "encendida" : "apagada";
       await enviarPush(`El tanque alcanzó su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
       alertas.tanque_min = true;
     }
   } else alertas.tanque_min = false;
 
-  // Tanque muy bajo
   if (nivel_tanque < min_tanque) {
     if (!alertas.tanque_muy_bajo) {
-      const estadoBomba = bomba ? "encendida" : "apagada"
+      const estadoBomba = bomba ? "encendida" : "apagada";
       await enviarPush(`El tanque está por debajo de su nivel mínimo. ${min_tanque} La bomba está ${estadoBomba}`);
       alertas.tanque_muy_bajo = true;
     }
   } else alertas.tanque_muy_bajo = false;
 
-  // Tanque sensor error
   if (nivel_tanque <= 0) {
     if (!alertas.tanque_cero) {
       await enviarPush(`Posible error en sensor del tanque. Nivel actual: ${nivel_tanque} %`);
@@ -209,7 +203,6 @@ async function evaluarAlertas(datos) {
     }
   } else alertas.tanque_cero = false;
 
-  // Tanque lleno
   if (nivel_tanque >= max_tanque) {
     if (!alertas.tanque_lleno) {
       await enviarPush("Tanque lleno");
@@ -279,13 +272,12 @@ async function evaluarAlertas(datos) {
   // ===============================
   //  ACTUALIZAR MEMORIA
   // ===============================
-for (const key of Object.keys(memoria)) {
-  if (datos[key] !== undefined) {
-    memoria[key] = datos[key];
+  for (const key of Object.keys(memoria)) {
+    if (datos[key] !== undefined) {
+      memoria[key] = datos[key];
+    }
   }
 }
-}
-
 
 // ===============================
 //  ESP32 → Render : enviar estado
@@ -333,110 +325,6 @@ app.get("/api/render/status", (req, res) => {
 });
 
 // ===============================
-//  APP → Render : enviar comando
-// ===============================
-app.post("/api/render/cmd", (req, res) => {
-  if (!validarAuth(req)) {
-    return res.status(401).json({ error: "token" });
-  }
-
-  if (!req.body.cmd) {
-    return res.status(400).json({ error: "falta cmd" });
-  }
-
-  ultimoComando = String(req.body.cmd).trim();
-
-  return res.json({ ok: true, cmd: ultimoComando });
-});
-
-// ===============================
-//  ESP32 → Render : leer comando
-// ===============================
-app.get("/api/render/cmd", (req, res) => {
-  if (!validarAuth(req)) {
-    return res.status(401).json({ error: "token" });
-  }
-
-  if (!ultimoComando) {
-    return res.json({ cmd: null });
-  }
-
-  const cmdTemp = ultimoComando;
-  ultimoComando = null;
-
-  return res.json({ cmd: cmdTemp });
-});
-
-// ===============================
-//  APP → Render : registrar token
-// ===============================
-app.post("/api/render/register-token", (req, res) => {
-  if (!validarAuth(req)) {
-    return res.status(401).json({ error: "token" });
-  }
-
-  const { token } = req.body;
-
-  if (!token) {
-    return res.status(400).json({ error: "falta token" });
-  }
-
-  if (!deviceTokens.includes(token)) {
-    deviceTokens.push(token);
-    console.log("📲 Token registrado:", token);
-  }
-
-  return res.json({ ok: true });
-});
-
-
-// ===============================
-//  ACTUALIZAR CONFIGURACIÓN DESDE POSTMAN / APP
-// ===============================
-app.post("/api/render/update-config", (req, res) => {
-  if (!validarAuth(req)) {
-    return res.status(401).json({ error: "token inválido" });
-  }
-
-  const datos = req.body;
-
-  const camposValidos = [
-    "min_pozo",
-    "min_tanque",
-    "max_tanque",
-    "prof_pozo",
-    "alt_tanque"
-  ];
-
-  const actualizados = {};
-
-  for (const campo of camposValidos) {
-    if (datos[campo] !== undefined) {
-      memoria[campo] = datos[campo];
-      actualizados[campo] = datos[campo];
-    }
-  }
-
-  if (Object.keys(actualizados).length === 0) {
-    return res.status(400).json({ error: "No enviaste ningún campo válido" });
-  }
-
-  return res.json({ ok: true, actualizados });
-});
-
-// ===============================
-//  TEST PUSH MANUAL
-// ===============================
-app.get("/test-push", async (req, res) => {
-  await enviarPush("🔥 Notificación de prueba desde servidor");
-  res.send("Push enviada correctamente");
-});
-
-// ===============================
-//  INICIO SERVIDOR
-// ===============================
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log("🚀 Servidor Render escuchando en puerto " + PORT);
-});
+— FIN DEL MENSAJE —  
+Tu archivo es demasiado largo para un solo envío.  
+Responde **“Siguiente parte”** y te envío el resto (cmd, tokens y NUEVA FUNCIÓN).
