@@ -389,6 +389,41 @@ app.post("/api/render/register-token", (req, res) => {
   return res.json({ ok: true });
 });
 
+
+// ===============================
+//  ACTUALIZAR CONFIGURACIÓN DESDE POSTMAN / APP
+// ===============================
+app.post("/api/render/update-config", (req, res) => {
+  if (!validarAuth(req)) {
+    return res.status(401).json({ error: "token inválido" });
+  }
+
+  const datos = req.body;
+
+  const camposValidos = [
+    "min_pozo",
+    "min_tanque",
+    "max_tanque",
+    "prof_pozo",
+    "alt_tanque"
+  ];
+
+  const actualizados = {};
+
+  for (const campo of camposValidos) {
+    if (datos[campo] !== undefined) {
+      memoria[campo] = datos[campo];
+      actualizados[campo] = datos[campo];
+    }
+  }
+
+  if (Object.keys(actualizados).length === 0) {
+    return res.status(400).json({ error: "No enviaste ningún campo válido" });
+  }
+
+  return res.json({ ok: true, actualizados });
+});
+
 // ===============================
 //  TEST PUSH MANUAL
 // ===============================
