@@ -131,6 +131,22 @@ async function evaluarAlertas(datos) {
   } = datos;
 
   const estadoBomba = bomba ? "encendida" : "apagada";
+  // ===============================
+//     DETECTAR CAMBIOS EN CONFIG
+// ===============================
+const configuraciones = [
+  ["min_pozo",   "Nuevo nivel mínimo del pozo: " + min_pozo + "%"],
+  ["min_tanque", "Nuevo nivel mínimo del tanque: " + min_tanque + "%"],
+  ["max_tanque", "Nuevo nivel máximo del tanque: " + max_tanque + "%"],
+  ["prof_pozo",  "Nueva profundidad del pozo: " + prof_pozo + " m"],
+  ["alt_tanque", "Nueva altura del tanque: " + alt_tanque + " m"],
+];
+
+for (const [campo, mensaje] of configuraciones) {
+  if (memoria[campo] !== null && memoria[campo] !== datos[campo]) {
+    await enviarPush("Configuración actualizada", mensaje);
+  }
+}
 
   // ===============================
   //       CAMBIO DE MODO
