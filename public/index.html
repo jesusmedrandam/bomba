@@ -2,37 +2,44 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema Bomba</title>
+  <title>App Bomba</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Icono -->
+  <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
 
-<div class="wrapper">
+<div class="start-container">
 
-  <div class="card glass">
-    <h1>💧 Sistema de Control</h1>
-    <p class="subtitle">Monitoreo inteligente de bomba</p>
+  <div class="start-card">
+
+    <img src="icon.png" class="app-icon" alt="App Icon">
+
+    <h1 class="app-title">App Bomba</h1>
+    <p class="app-subtitle">Monitoreo de niveles y estado del sistema</p>
 
     <input type="text" id="token" placeholder="Ingrese su token de acceso">
-    <button class="primary" onclick="entrar()">Ingresar</button>
 
-    <div class="divider"></div>
+    <button class="btn-primary" onclick="entrar()">Ingresar</button>
 
-    <a href="/app/app-bomba.apk" download>
-      <button class="download">
-        📲 Descargar App Android
-        <span class="version">v1.0</span>
-      </button>
-    </a>
+    <div class="download-area">
+      <p class="hint">Descargue la app móvil para controlar el sistema</p>
+
+      <a href="/app/app-bomba.apk" download class="download-btn">
+        <img src="icon.png" class="download-icon"> Descargar App Android
+      </a>
+    </div>
 
     <p id="error"></p>
+
   </div>
 
 </div>
 
 <script>
 function entrar() {
-  const token = document.getElementById("token").value;
+  const token = document.getElementById("token").value.trim();
 
   if (!token) {
     document.getElementById("error").innerText = "Ingrese un token válido";
