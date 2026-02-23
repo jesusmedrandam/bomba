@@ -1,47 +1,52 @@
 const token = sessionStorage.getItem("auth");
-if (!token) window.location.href = "/";
+if (!token) location.href = "/";
 
 function salir() {
   sessionStorage.removeItem("auth");
-  window.location.href = "/";
+  location.href = "/";
 }
 
 const API = "/api/render/status?auth=" + token;
 
-// Función para actualizar un gauge circular
 function setCircle(circle, percent) {
   const radius = 65;
   const circumference = 2 * Math.PI * radius;
   circle.style.strokeDasharray = circumference;
-  circle.style.strokeDashoffset = circumference - (percent / 100) * circumference;
+  circle.style.strokeDashoffset = circumference - percent / 100 * circumference;
 }
 
-// Cargar estado
 function cargarEstado() {
   fetch(API)
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
       if (!data.recibido) return;
 
       const d = data.datos;
 
-      // Fecha
       document.getElementById("fechaServ").innerText =
         "Fecha servidor: " + new Date(data.fecha).toLocaleString();
 
-      // Estados simples
-      document.getElementById("bombaEstado").innerText = d.bomba ? "Encendida" : "Apagada";
-      document.getElementById("modoEstado").innerText = d.modo;
-      document.getElementById("pozoEstado").innerText = d.conexion_pozo ? "Conectado" : "Desconectado";
+      document.getElementById("bombaEstado").innerText =
+        d.bomba ? "Encendida" : "Apagada";
 
-      // Niveles
-      setCircle(document.getElementById("pozoCircle"), d.nivel_pozo);
-      setCircle(document.getElementById("tanqueCircle"), d.nivel_tanque);
+      document.getElementById("modoEstado").innerText =
+        d.modo === "AUTO" ? "Automático" : "Manual";
 
-      document.getElementById("pozoText").innerText = d.nivel_pozo + "%";
-      document.getElementById("tanqueText").innerText = d.nivel_tanque + "%";
+      document.getElementById("pozoEstado").innerText =
+        d.conexion_pozo ? "Conectado" : "Desconectado";
+
+      setCircle(pozoCircle, d.nivel_pozo);
+      setCircle(tanqueCircle, d.nivel_tanque);
+
+      pozoText.textContent = d.nivel_pozo + "%";
+      tanqueText.textContent = d.nivel_tanque + "%";
+
+      minPozo.textContent = d.min_pozo + "%";
+      profPozo.textContent = d.prof_pozo + " m";
+      minTanque.textContent = d.min_tanque + "%";
+      maxTanque.textContent = d.max_tanque + "%";
+      altTanque.textContent = d.alt_tanque + " m";
     })
-    .catch(err => console.log("Error:", err));
 }
 
 cargarEstado();
