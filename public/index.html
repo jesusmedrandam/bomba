@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>App Bomba</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
 
@@ -12,39 +12,58 @@
 
   <div class="start-card">
 
-    <img src="icon.png" class="app-icon" alt="icon">
+    <img src="icon.png" class="app-icon">
 
     <h1 class="app-title">App Bomba</h1>
     <p class="app-subtitle">Monitoreo de niveles del sistema</p>
 
-    <input type="text" id="token" placeholder="Ingrese su token">
+    <div class="input-group">
+      <label>Token de acceso</label>
+      <input type="text" id="token" placeholder="Ej: A9F3K2X7">
+    </div>
 
-    <button class="btn-primary" onclick="entrar()">Ingresar</button>
+    <button class="btn-primary" onclick="validarToken()">Ingresar</button>
+
+    <p id="error" class="error-msg"></p>
 
     <div class="download-area">
       <p class="hint">Para controlar la bomba descargue la App:</p>
-
       <div class="download-row">
         <img src="icon.png" class="download-icon-big">
         <a href="/app/app-bomba.apk" download class="download-link">Descargar App Android</a>
       </div>
     </div>
 
-    <p id="error"></p>
-
   </div>
 
 </div>
 
 <script>
-function entrar() {
+async function validarToken() {
   const token = document.getElementById("token").value.trim();
+  const error = document.getElementById("error");
+
   if (!token) {
-    document.getElementById("error").innerText = "Ingrese un token válido";
+    error.innerText = "Ingrese un token válido";
     return;
   }
-  sessionStorage.setItem("auth", token);
-  window.location.href = "/dashboard.html";
+
+  try {
+    const res = await fetch(`/api/render/status?auth=${token}`);
+    if (!res.ok) throw new Error("Token inválido");
+
+    const data = await res.json();
+    if (!data.recibido) {
+      error.innerText = "Token incorrecto";
+      return;
+    }
+
+    sessionStorage.setItem("auth", token);
+    window.location.href = "/dashboard.html";
+
+  } catch {
+    error.innerText = "Token inválido o servidor no disponible";
+  }
 }
 </script>
 
