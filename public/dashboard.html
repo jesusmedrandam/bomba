@@ -4,80 +4,66 @@
   <meta charset="UTF-8">
   <title>Panel - App Bomba</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="icon" href="icon.png">
 </head>
 <body>
 
 <div class="header">
-  <img src="icon.png" class="header-icon">
-  <span class="header-title">App Bomba • Panel</span>
-  <button class="logout-btn" onclick="salir()">Salir</button>
+  <div class="header-left">
+    <img src="icon.png" class="header-icon">
+    <span class="header-title">App Bomba</span>
+  </div>
+
+  <div class="header-buttons">
+    <button class="btn-top" onclick="location.href='informacion.html'">Información</button>
+    <button class="btn-top" onclick="salir()">Salir</button>
+  </div>
 </div>
 
 <div class="panel-container">
 
-  <!-- ESTADO -->
-  <div class="card block">
+  <div class="card">
     <h2 class="card-title">Estado del Sistema</h2>
+
     <p>Bomba: <b id="bombaEstado">---</b></p>
     <p>Modo: <b id="modoEstado">---</b></p>
     <p>Pozo: <b id="pozoEstado">---</b></p>
     <p id="fechaServ">Fecha servidor: ---</p>
   </div>
 
-  <!-- NIVELES -->
-  <div class="card block">
+  <div class="card">
     <h2 class="card-title">Niveles</h2>
 
     <div class="levels-grid">
 
-      <div class="level-card">
+      <div class="level-card" style="text-align:center;">
         <h3>Nivel Pozo</h3>
-        <svg class="gauge" width="180" height="180">
-          <circle class="bg" cx="90" cy="90" r="75"></circle>
-          <circle class="progress" id="pozoCircle" cx="90" cy="90" r="75"></circle>
-          <text class="value" id="pozoText" x="90" y="98" dominant-baseline="middle">--%</text>
+        <svg class="gauge">
+          <circle class="bg" cx="100" cy="100" r="80"/>
+          <circle class="progress" id="pozoCircle" cx="100" cy="100" r="80"/>
+          <text class="value" id="pozoText" x="100" y="110">--%</text>
         </svg>
       </div>
 
-      <div class="level-card">
+      <div class="level-card" style="text-align:center;">
         <h3>Nivel Tanque</h3>
-        <svg class="gauge" width="180" height="180">
-          <circle class="bg" cx="90" cy="90" r="75"></circle>
-          <circle class="progress" id="tanqueCircle" cx="90" cy="90" r="75"></circle>
-          <text class="value" id="tanqueText" x="90" y="98" dominant-baseline="middle">--%</text>
+        <svg class="gauge">
+          <circle class="bg" cx="100" cy="100" r="80"/>
+          <circle class="progress" id="tanqueCircle" cx="100" cy="100" r="80"/>
+          <text class="value" id="tanqueText" x="100" y="110">--%</text>
         </svg>
       </div>
 
     </div>
   </div>
 
-  <!-- CONFIGURACIÓN -->
-  <div class="card block">
+  <div class="card">
     <h2 class="card-title">Configuraciones</h2>
-
     <p>Nivel mínimo pozo: <b id="minPozo">---</b></p>
     <p>Profundidad pozo: <b id="profPozo">---</b></p>
-
     <p>Nivel mínimo tanque: <b id="minTanque">---</b></p>
     <p>Nivel máximo tanque: <b id="maxTanque">---</b></p>
     <p>Altura tanque: <b id="altTanque">---</b></p>
-  </div>
-
-  <!-- DESCARGA -->
-  <div class="card block">
-    <h2 class="card-title">Control</h2>
-    <p>Para controlar la bomba descargue la app:</p>
-
-    <div class="download-row">
-      <img src="icon.png" class="download-icon-big">
-      <a href="/app/app-bomba.apk" download class="download-link-big">Descargar App Android</a>
-    </div>
-  </div>
-
-  <!-- INFORMACIÓN -->
-  <div class="card block">
-    <button class="btn-info" onclick="location.href='informacion.html'">Información</button>
   </div>
 
 </div>
