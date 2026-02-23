@@ -9,7 +9,7 @@ function salir() {
 const API = "/api/render/status?auth=" + token;
 
 function setCircle(circle, percent) {
-  const radius = 65;
+  const radius = 75;
   const circumference = 2 * Math.PI * radius;
   circle.style.strokeDasharray = circumference;
   circle.style.strokeDashoffset = circumference - percent / 100 * circumference;
@@ -19,7 +19,11 @@ function cargarEstado() {
   fetch(API)
     .then(r => r.json())
     .then(data => {
-      if (!data.recibido) return;
+      if (!data.recibido) {
+        alert("Token inválido");
+        salir();
+        return;
+      }
 
       const d = data.datos;
 
@@ -38,15 +42,18 @@ function cargarEstado() {
       setCircle(pozoCircle, d.nivel_pozo);
       setCircle(tanqueCircle, d.nivel_tanque);
 
-      pozoText.textContent = d.nivel_pozo + "%";
-      tanqueText.textContent = d.nivel_tanque + "%";
+      pozoText.innerText = d.nivel_pozo + "%";
+      tanqueText.innerText = d.nivel_tanque + "%";
 
-      minPozo.textContent = d.min_pozo + "%";
-      profPozo.textContent = d.prof_pozo + " m";
-      minTanque.textContent = d.min_tanque + "%";
-      maxTanque.textContent = d.max_tanque + "%";
-      altTanque.textContent = d.alt_tanque + " m";
+      minPozo.innerText = d.min_pozo + "%";
+      profPozo.innerText = d.prof_pozo + " m";
+      minTanque.innerText = d.min_tanque + "%";
+      maxTanque.innerText = d.max_tanque + "%";
+      altTanque.innerText = d.alt_tanque + " m";
     })
+    .catch(() => {
+      alert("Error de conexión");
+    });
 }
 
 cargarEstado();
