@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <title>App Bomba</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Icono -->
   <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
@@ -14,21 +12,22 @@
 
   <div class="start-card">
 
-    <img src="icon.png" class="app-icon" alt="App Icon">
+    <img src="icon.png" class="app-icon" alt="icon">
 
     <h1 class="app-title">App Bomba</h1>
-    <p class="app-subtitle">Monitoreo de niveles y estado del sistema</p>
+    <p class="app-subtitle">Monitoreo de niveles del sistema</p>
 
-    <input type="text" id="token" placeholder="Ingrese su token de acceso">
+    <input type="text" id="token" placeholder="Ingrese su token">
 
     <button class="btn-primary" onclick="entrar()">Ingresar</button>
 
     <div class="download-area">
-      <p class="hint">Descargue la app móvil para controlar el sistema</p>
+      <p class="hint">Para controlar la bomba descargue la App:</p>
 
-      <a href="/app/app-bomba.apk" download class="download-btn">
-        <img src="icon.png" class="download-icon"> Descargar App Android
-      </a>
+      <div class="download-row">
+        <img src="icon.png" class="download-icon-big">
+        <a href="/app/app-bomba.apk" download class="download-link">Descargar App Android</a>
+      </div>
     </div>
 
     <p id="error"></p>
@@ -40,12 +39,10 @@
 <script>
 function entrar() {
   const token = document.getElementById("token").value.trim();
-
   if (!token) {
     document.getElementById("error").innerText = "Ingrese un token válido";
     return;
   }
-
   sessionStorage.setItem("auth", token);
   window.location.href = "/dashboard.html";
 }
