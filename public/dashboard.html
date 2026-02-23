@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Panel - App Bomba</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
 
@@ -16,56 +16,68 @@
 
 <div class="panel-container">
 
-  <div class="card">
+  <!-- ESTADO -->
+  <div class="card block">
     <h2 class="card-title">Estado del Sistema</h2>
-
-    <p class="state-item">Bomba: <b id="bombaEstado">---</b></p>
-    <p class="state-item">Modo: <b id="modoEstado">---</b></p>
-    <p class="state-item">Pozo: <b id="pozoEstado">---</b></p>
-
-    <p id="fechaServ" class="fecha-item">Fecha servidor: ---</p>
+    <p>Bomba: <b id="bombaEstado">---</b></p>
+    <p>Modo: <b id="modoEstado">---</b></p>
+    <p>Pozo: <b id="pozoEstado">---</b></p>
+    <p id="fechaServ">Fecha servidor: ---</p>
   </div>
 
-  <div class="levels-grid">
+  <!-- NIVELES -->
+  <div class="card block">
+    <h2 class="card-title">Niveles</h2>
 
-    <div class="level-card">
-      <h3 class="circle-title">Nivel Pozo</h3>
-      <svg class="gauge" width="160" height="160">
-        <circle class="bg" cx="80" cy="80" r="65"></circle>
-        <circle class="progress" id="pozoCircle" cx="80" cy="80" r="65"></circle>
-        <text class="value" id="pozoText" x="80" y="88" dominant-baseline="middle">--%</text>
-      </svg>
+    <div class="levels-grid">
+
+      <div class="level-card">
+        <h3>Nivel Pozo</h3>
+        <svg class="gauge" width="180" height="180">
+          <circle class="bg" cx="90" cy="90" r="75"></circle>
+          <circle class="progress" id="pozoCircle" cx="90" cy="90" r="75"></circle>
+          <text class="value" id="pozoText" x="90" y="98" dominant-baseline="middle">--%</text>
+        </svg>
+      </div>
+
+      <div class="level-card">
+        <h3>Nivel Tanque</h3>
+        <svg class="gauge" width="180" height="180">
+          <circle class="bg" cx="90" cy="90" r="75"></circle>
+          <circle class="progress" id="tanqueCircle" cx="90" cy="90" r="75"></circle>
+          <text class="value" id="tanqueText" x="90" y="98" dominant-baseline="middle">--%</text>
+        </svg>
+      </div>
+
     </div>
-
-    <div class="level-card">
-      <h3 class="circle-title">Nivel Tanque</h3>
-      <svg class="gauge" width="160" height="160">
-        <circle class="bg" cx="80" cy="80" r="65"></circle>
-        <circle class="progress" id="tanqueCircle" cx="80" cy="80" r="65"></circle>
-        <text class="value" id="tanqueText" x="80" y="88" dominant-baseline="middle">--%</text>
-      </svg>
-    </div>
-
   </div>
 
-  <div class="card">
-    <h2 class="card-title">Configuraciones del Sistema</h2>
+  <!-- CONFIGURACIÓN -->
+  <div class="card block">
+    <h2 class="card-title">Configuraciones</h2>
 
-    <p class="config-item">Nivel mínimo pozo: <b id="minPozo">---</b></p>
-    <p class="config-item">Profundidad pozo: <b id="profPozo">---</b></p>
-    <p class="config-item">Nivel mínimo tanque: <b id="minTanque">---</b></p>
-    <p class="config-item">Nivel máximo tanque: <b id="maxTanque">---</b></p>
-    <p class="config-item">Altura tanque: <b id="altTanque">---</b></p>
+    <p>Nivel mínimo pozo: <b id="minPozo">---</b></p>
+    <p>Profundidad pozo: <b id="profPozo">---</b></p>
+
+    <p>Nivel mínimo tanque: <b id="minTanque">---</b></p>
+    <p>Nivel máximo tanque: <b id="maxTanque">---</b></p>
+    <p>Altura tanque: <b id="altTanque">---</b></p>
   </div>
 
-  <div class="card">
+  <!-- DESCARGA -->
+  <div class="card block">
     <h2 class="card-title">Control</h2>
-    <p class="info-text">Para controlar la bomba descargue la App oficial:</p>
+    <p>Para controlar la bomba descargue la app:</p>
 
     <div class="download-row">
       <img src="icon.png" class="download-icon-big">
       <a href="/app/app-bomba.apk" download class="download-link-big">Descargar App Android</a>
     </div>
+  </div>
+
+  <!-- INFORMACIÓN -->
+  <div class="card block">
+    <button class="btn-info" onclick="location.href='informacion.html'">Información</button>
   </div>
 
 </div>
