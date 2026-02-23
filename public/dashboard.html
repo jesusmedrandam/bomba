@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Panel - App Bomba</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="icon.png" />
 </head>
 <body>
 
@@ -16,7 +16,6 @@
 
 <div class="panel-container">
 
-  <!-- ESTADO SISTEMA -->
   <div class="card">
     <h2 class="card-title">Estado del Sistema</h2>
 
@@ -27,12 +26,11 @@
     <p id="fechaServ" class="fecha-item">Fecha servidor: ---</p>
   </div>
 
-  <!-- INDICADORES -->
   <div class="levels-grid">
 
     <div class="level-card">
       <h3 class="circle-title">Nivel Pozo</h3>
-      <svg class="gauge">
+      <svg class="gauge" width="160" height="160">
         <circle class="bg" cx="80" cy="80" r="65"></circle>
         <circle class="progress" id="pozoCircle" cx="80" cy="80" r="65"></circle>
         <text class="value" id="pozoText" x="80" y="88" dominant-baseline="middle">--%</text>
@@ -41,7 +39,7 @@
 
     <div class="level-card">
       <h3 class="circle-title">Nivel Tanque</h3>
-      <svg class="gauge">
+      <svg class="gauge" width="160" height="160">
         <circle class="bg" cx="80" cy="80" r="65"></circle>
         <circle class="progress" id="tanqueCircle" cx="80" cy="80" r="65"></circle>
         <text class="value" id="tanqueText" x="80" y="88" dominant-baseline="middle">--%</text>
@@ -50,22 +48,19 @@
 
   </div>
 
-  <!-- CONFIGURACIONES DEL SISTEMA -->
   <div class="card">
     <h2 class="card-title">Configuraciones del Sistema</h2>
 
     <p class="config-item">Nivel mínimo pozo: <b id="minPozo">---</b></p>
     <p class="config-item">Profundidad pozo: <b id="profPozo">---</b></p>
-
     <p class="config-item">Nivel mínimo tanque: <b id="minTanque">---</b></p>
     <p class="config-item">Nivel máximo tanque: <b id="maxTanque">---</b></p>
     <p class="config-item">Altura tanque: <b id="altTanque">---</b></p>
   </div>
 
-  <!-- DESCARGA -->
   <div class="card">
     <h2 class="card-title">Control</h2>
-    <p class="info-text">Para controlar la bomba, descargue la App oficial:</p>
+    <p class="info-text">Para controlar la bomba descargue la App oficial:</p>
 
     <div class="download-row">
       <img src="icon.png" class="download-icon-big">
