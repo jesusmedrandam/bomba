@@ -7,8 +7,40 @@ body {
 }
 
 /* -------------------------- */
-/* INICIO (index.html) */
+/* HEADER */
+.header {
+  width: 100%;
+  height: 70px;
+  background: #0095ff;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  color: white;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+}
+
+.header-icon {
+  width: 40px;
+  margin-right: 10px;
+}
+
+.header-title {
+  flex-grow: 1;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background: #ff4d4d;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
 /* -------------------------- */
+/* INICIO */
 .start-container {
   width: 100%;
   height: 100vh;
@@ -28,115 +60,47 @@ body {
 
 .app-icon {
   width: 70px;
-  margin-bottom: 10px;
 }
 
-.app-title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.app-subtitle {
-  font-size: 14px;
-  opacity: 0.7;
-  margin-bottom: 25px;
-}
-
-/* INPUT */
-input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #b5d1ff;
+.input {
   margin-bottom: 15px;
-  font-size: 14px;
-  outline: none;
 }
 
-/* BOTÓN PRINCIPAL */
 .btn-primary {
   width: 100%;
   padding: 14px;
-  border: none;
   border-radius: 10px;
+  border: none;
   background: #0095ff;
   color: white;
-  cursor: pointer;
   font-size: 16px;
-  margin-bottom: 15px;
+  cursor: pointer;
 }
 
-.download-area {
-  margin-top: 15px;
-}
-
-.hint {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-/* BOTÓN DE DESCARGA */
-.download-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 12px 20px;
-  border-radius: 10px;
-  background: #e9f3ff;
-  color: #0095ff;
-  text-decoration: none;
-  font-weight: bold;
-  margin-top: 8px;
-}
-
-.download-icon {
-  width: 24px;
-  margin-right: 8px;
-}
-
-#error {
-  color: #d9534f;
-  margin-top: 10px;
-}
-
-/* -------------------------- */
-/* PANEL (dashboard.html) */
-/* -------------------------- */
-.header {
-  width: 100%;
-  height: 70px;
-  background: #0095ff;
+.download-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 20px;
-  color: white;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+  margin-top: 10px;
+  gap: 10px;
 }
 
-.header-icon {
-  width: 42px;
+.download-icon-big {
+  width: 36px;
 }
 
-.header-title {
-  flex-grow: 1;
-  font-size: 20px;
+.download-link,
+.download-link-big {
+  color: #0095ff;
   font-weight: bold;
+  text-decoration: none;
 }
 
-.logout-btn {
-  background: #ff4d4d;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-}
-
+/* -------------------------- */
+/* PANEL */
 .panel-container {
   padding: 20px;
 }
 
-/* CARDS */
 .card {
   background: white;
   padding: 20px;
@@ -145,74 +109,44 @@ input {
   margin-bottom: 25px;
 }
 
-.card-title {
-  font-size: 20px;
-  margin-bottom: 12px;
+/* -------------------------- */
+/* CIRCULAR GAUGE */
+.gauge {
+  width: 160px;
+  height: 160px;
 }
 
-/* CIRCULAR INDICATORS */
-.gauge .bg {
+.bg {
   fill: none;
   stroke: #d8e7f7;
-  stroke-width: 14;
+  stroke-width: 16;
 }
 
-.gauge .progress {
+.progress {
   fill: none;
   stroke: #0095ff;
-  stroke-width: 14;
+  stroke-width: 16;
   stroke-linecap: round;
   transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-  transition: stroke-dashoffset 0.8s ease;
+  transform-origin: center;
+  transition: stroke-dashoffset .8s linear;
 }
 
 .value {
-  font-size: 22px;
-  fill: #1a4a73;
+  font-size: 24px;
   font-weight: bold;
+  fill: #1a4a73;
 }
 
+/* RESPONSIVE FIX */
 .levels-grid {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
 }
 
-.level-card {
-  flex: 1;
-  min-width: 260px;
-  background: white;
-  padding: 20px;
-  text-align: center;
-  border-radius: 18px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-}
-
-.circle-title {
-  margin-bottom: 18px;
-}
-
-/* Mensaje de descarga */
-.info-text {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.download-btn-big {
-  display: flex;
-  align-items: center;
-  background: #0095ff;
-  color: white;
-  padding: 15px;
-  font-size: 16px;
-  border-radius: 12px;
-  text-decoration: none;
-  margin-top: 15px;
-  justify-content: center;
-}
-
-.download-icon-big {
-  width: 32px;
-  margin-right: 10px;
+@media (min-width: 700px) {
+  .levels-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
