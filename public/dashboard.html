@@ -2,47 +2,63 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel de Control</title>
+  <title>Panel - App Bomba</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="icon.png">
 </head>
 <body>
 
-<div class="dashboard">
+<div class="header">
+  <img src="icon.png" class="header-icon">
+  <span class="header-title">App Bomba • Panel</span>
+  <button class="logout-btn" onclick="salir()">Salir</button>
+</div>
 
-  <div class="header">
-    <h1>💧 Panel de Monitoreo</h1>
-    <button class="logout" onclick="salir()">Cerrar sesión</button>
+<div class="panel-container">
+
+  <div class="card">
+    <h2 class="card-title">Estado del Sistema</h2>
+    <p class="state-item">Bomba: <b id="bombaEstado">---</b></p>
+    <p class="state-item">Modo: <b id="modoEstado">---</b></p>
+    <p class="state-item">Pozo: <b id="pozoEstado">---</b></p>
+    <p id="fechaServ" class="fecha-item">Fecha servidor: ---</p>
   </div>
 
-  <div class="grid">
+  <div class="levels-grid">
 
-    <div class="card glass">
-      <h3>Tanque</h3>
-      <div class="progress">
-        <div class="progress-bar" id="tanqueBar"></div>
+    <div class="level-card">
+      <h3 class="circle-title">Nivel Pozo</h3>
+      <div class="circle-wrapper">
+        <svg class="gauge" width="160" height="160">
+          <circle class="bg" cx="80" cy="80" r="65"></circle>
+          <circle class="progress" id="pozoCircle" cx="80" cy="80" r="65"></circle>
+          <text class="value" id="pozoText" x="80" y="88" text-anchor="middle">--%</text>
+        </svg>
       </div>
-      <p id="tanqueText">--%</p>
     </div>
 
-    <div class="card glass">
-      <h3>Pozo</h3>
-      <div class="progress">
-        <div class="progress-bar" id="pozoBar"></div>
+    <div class="level-card">
+      <h3 class="circle-title">Nivel Tanque</h3>
+      <div class="circle-wrapper">
+        <svg class="gauge" width="160" height="160">
+          <circle class="bg" cx="80" cy="80" r="65"></circle>
+          <circle class="progress" id="tanqueCircle" cx="80" cy="80" r="65"></circle>
+          <text class="value" id="tanqueText" x="80" y="88" text-anchor="middle">--%</text>
+        </svg>
       </div>
-      <p id="pozoText">--%</p>
     </div>
 
-    <div class="card glass center">
-      <h3>Bomba</h3>
-      <div id="bombaEstado" class="status off">APAGADA</div>
-      <p id="modoText">Modo: --</p>
-    </div>
+  </div>
 
-    <div class="card glass center">
-      <h3>Última actualización</h3>
-      <p id="fechaText">Cargando...</p>
-    </div>
+  <div class="card">
+    <h2 class="card-title">Control del Sistema</h2>
+    <p class="info-text">
+      Para controlar la bomba (encender, apagar, cambiar modo) descargue la App oficial:
+    </p>
 
+    <a href="/app/app-bomba.apk" download class="download-btn-big">
+      <img src="icon.png" class="download-icon-big"> Descargar App Android
+    </a>
   </div>
 
 </div>
