@@ -16,49 +16,61 @@
 
 <div class="panel-container">
 
+  <!-- ESTADO SISTEMA -->
   <div class="card">
     <h2 class="card-title">Estado del Sistema</h2>
+
     <p class="state-item">Bomba: <b id="bombaEstado">---</b></p>
     <p class="state-item">Modo: <b id="modoEstado">---</b></p>
     <p class="state-item">Pozo: <b id="pozoEstado">---</b></p>
+
     <p id="fechaServ" class="fecha-item">Fecha servidor: ---</p>
   </div>
 
+  <!-- INDICADORES -->
   <div class="levels-grid">
 
     <div class="level-card">
       <h3 class="circle-title">Nivel Pozo</h3>
-      <div class="circle-wrapper">
-        <svg class="gauge" width="160" height="160">
-          <circle class="bg" cx="80" cy="80" r="65"></circle>
-          <circle class="progress" id="pozoCircle" cx="80" cy="80" r="65"></circle>
-          <text class="value" id="pozoText" x="80" y="88" text-anchor="middle">--%</text>
-        </svg>
-      </div>
+      <svg class="gauge">
+        <circle class="bg" cx="80" cy="80" r="65"></circle>
+        <circle class="progress" id="pozoCircle" cx="80" cy="80" r="65"></circle>
+        <text class="value" id="pozoText" x="80" y="88" dominant-baseline="middle">--%</text>
+      </svg>
     </div>
 
     <div class="level-card">
       <h3 class="circle-title">Nivel Tanque</h3>
-      <div class="circle-wrapper">
-        <svg class="gauge" width="160" height="160">
-          <circle class="bg" cx="80" cy="80" r="65"></circle>
-          <circle class="progress" id="tanqueCircle" cx="80" cy="80" r="65"></circle>
-          <text class="value" id="tanqueText" x="80" y="88" text-anchor="middle">--%</text>
-        </svg>
-      </div>
+      <svg class="gauge">
+        <circle class="bg" cx="80" cy="80" r="65"></circle>
+        <circle class="progress" id="tanqueCircle" cx="80" cy="80" r="65"></circle>
+        <text class="value" id="tanqueText" x="80" y="88" dominant-baseline="middle">--%</text>
+      </svg>
     </div>
 
   </div>
 
+  <!-- CONFIGURACIONES DEL SISTEMA -->
   <div class="card">
-    <h2 class="card-title">Control del Sistema</h2>
-    <p class="info-text">
-      Para controlar la bomba (encender, apagar, cambiar modo) descargue la App oficial:
-    </p>
+    <h2 class="card-title">Configuraciones del Sistema</h2>
 
-    <a href="/app/app-bomba.apk" download class="download-btn-big">
-      <img src="icon.png" class="download-icon-big"> Descargar App Android
-    </a>
+    <p class="config-item">Nivel mínimo pozo: <b id="minPozo">---</b></p>
+    <p class="config-item">Profundidad pozo: <b id="profPozo">---</b></p>
+
+    <p class="config-item">Nivel mínimo tanque: <b id="minTanque">---</b></p>
+    <p class="config-item">Nivel máximo tanque: <b id="maxTanque">---</b></p>
+    <p class="config-item">Altura tanque: <b id="altTanque">---</b></p>
+  </div>
+
+  <!-- DESCARGA -->
+  <div class="card">
+    <h2 class="card-title">Control</h2>
+    <p class="info-text">Para controlar la bomba, descargue la App oficial:</p>
+
+    <div class="download-row">
+      <img src="icon.png" class="download-icon-big">
+      <a href="/app/app-bomba.apk" download class="download-link-big">Descargar App Android</a>
+    </div>
   </div>
 
 </div>
