@@ -10,298 +10,191 @@ body{
 margin:0;
 font-family:sans-serif;
 background:#eef6ff;
-}
-
-/* HEADER */
-.header{
-background:#0095ff;
-color:white;
-height:80px;
 display:flex;
-align-items:flex-end;
 justify-content:center;
-padding-bottom:10px;
-position:fixed;
-top:0;
-width:100%;
-z-index:1000;
-box-shadow:0 2px 8px rgba(0,0,0,0.25);
+align-items:center;
+height:100vh;
 }
 
-.title-text{
-font-size:22px;
-font-weight:bold;
-}
-
-/* BOTONES HEADER */
-.top-buttons{
-position:absolute;
-left:10px;
-bottom:10px;
-display:flex;
-gap:10px;
-}
-
-.top-btn{
+/* CONTENEDOR */
+.box{
+width:90%;
+max-width:350px;
 background:white;
-color:#0095ff;
-border:none;
-border-radius:10px;
-padding:6px 10px;
-font-size:12px;
-font-weight:bold;
-cursor:pointer;
-}
-
-/* CONTENIDO */
-.container{
-padding:20px;
-margin-top:100px;
-display:flex;
-flex-direction:column;
-gap:25px;
-}
-
-.card{
-background:white;
+padding:25px;
 border-radius:18px;
-padding:20px;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
-}
-
-.card-title{
-font-size:18px;
-font-weight:bold;
-color:#1a4a73;
-margin-bottom:12px;
-}
-
-.state,.data-item{
-font-size:16px;
-color:#1a4a73;
-margin-bottom:6px;
-}
-
-/* CÍRCULOS */
-.circle-wrap{
-display:flex;
-justify-content:space-around;
-margin-top:15px;
-}
-
-.circle{
-width:120px;
-height:120px;
-border-radius:50%;
-background:conic-gradient(#0095ff 0%, #d8e7f7 0%);
-display:flex;
-align-items:center;
-justify-content:center;
-position:relative;
-}
-
-.circle::before{
-content:"";
-position:absolute;
-width:90px;
-height:90px;
-background:white;
-border-radius:50%;
-}
-
-.circle-text{
-position:absolute;
-font-weight:bold;
-color:#1a4a73;
-font-size:16px;
-}
-
-/* MODAL ERROR */
-.modal-bg{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:2000;
-}
-
-.modal-box{
-background:white;
-padding:20px;
-border-radius:15px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
 text-align:center;
-width:80%;
-max-width:300px;
 }
 
+/* ICONO */
+.logo{
+width:90px;
+margin-bottom:15px;
+}
+
+/* TITULO */
+.title{
+font-size:20px;
+font-weight:bold;
+color:#1a4a73;
+margin-bottom:10px;
+}
+
+.desc{
+font-size:14px;
+color:#5a7fa3;
+margin-bottom:20px;
+}
+
+/* INPUT */
+input{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:1px solid #8bb8e0;
+font-size:16px;
+margin-bottom:15px;
+text-align:center;
+letter-spacing:2px;
+}
+
+/* BOTONES */
 .btn{
+width:100%;
 padding:12px;
 border-radius:12px;
 border:none;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+margin-top:5px;
+}
+
+.btn-primary{
 background:#0095ff;
 color:white;
-font-weight:bold;
-margin-top:10px;
-width:100%;
-cursor:pointer;
 }
+
+.btn-secondary{
+background:#f0ad4e;
+color:white;
+}
+
+/* MENSAJE */
+.msg{
+margin-top:10px;
+font-size:14px;
+color:#d9534f;
+display:none;
+}
+
+.loader{
+width:14px;
+height:14px;
+border:3px solid white;
+border-bottom-color:transparent;
+border-radius:50%;
+display:inline-block;
+animation:spin 0.8s linear infinite;
+margin-right:5px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 </style>
 </head>
 
 <body>
 
-<div class="header">
+<div class="box">
 
-<div class="top-buttons">
-<button class="top-btn" onclick="window.location.href='informacion.html'">Info</button>
-<button class="top-btn" onclick="descargarApp()">App</button>
+<img src="icon.png" class="logo">
+
+<div class="title">Conectar al sistema</div>
+
+<div class="desc">
+Ingresa el código de vinculación para acceder al panel web
 </div>
 
-<span class="title-text">Panel Web</span>
+<input type="text" id="codigo" placeholder="CÓDIGO">
 
-</div>
+<button class="btn btn-primary" onclick="acceder()" id="btnAcceder">
+Acceder
+</button>
 
-<div class="container">
+<button class="btn btn-secondary" onclick="descargarApp()">
+Descargar App
+</button>
 
-<!-- ESTADO -->
-<div class="card">
-<div class="card-title">Estado del Sistema</div>
-<div class="state">Nodo Pozo: <b id="pozoEstado">---</b></div>
-<div class="state">Bomba: <b id="bombaEstado">---</b></div>
-<div class="state">Modo de Trabajo: <b id="modoEstado">---</b></div>
-<div id="ultimaAct" style="margin-top:10px;font-size:14px;color:#1a4a73;">
-Última actualización: ---
-</div>
-</div>
+<div id="msg" class="msg"></div>
 
-<!-- CÍRCULOS -->
-<div class="card">
-<div class="card-title">Niveles de Agua</div>
-
-<div class="circle-wrap">
-
-<div>
-<div class="circle" id="circlePozo">
-<div class="circle-text" id="txtPozo">--%</div>
-</div>
-<div style="text-align:center;margin-top:5px;">Pozo</div>
-</div>
-
-<div>
-<div class="circle" id="circleTanque">
-<div class="circle-text" id="txtTanque">--%</div>
-</div>
-<div style="text-align:center;margin-top:5px;">Tanque</div>
-</div>
-
-</div>
-</div>
-
-<!-- CONFIG SOLO VISUAL -->
-<div class="card">
-<div class="card-title">Configuración</div>
-<div class="data-item">Min Pozo: <b id="minPozo">---</b></div>
-<div class="data-item">Min Tanque: <b id="minTanque">---</b></div>
-<div class="data-item">Max Tanque: <b id="maxTanque">---</b></div>
-<div class="data-item">Prof Pozo: <b id="profPozo">---</b></div>
-<div class="data-item">Alt Tanque: <b id="altTanque">---</b></div>
-</div>
-
-</div>
-
-<!-- MODAL -->
-<div id="modalError" class="modal-bg">
-<div class="modal-box">
-<h3>No se pudo conectar</h3>
-<p>Revisa la conexión</p>
-<button class="btn" onclick="actualizarDatos()">Reintentar</button>
-</div>
 </div>
 
 <script>
 
-const STATUS_URL="https://appbomba.onrender.com/api/render/status?auth=PUBLIC";
+const URL="https://appbomba.onrender.com/api/render/status";
 
-/* 🔥 si quieres seguridad luego cambias PUBLIC */
+/* 🔥 ACCEDER */
+function acceder(){
 
-let segundos=0;
-let ultimaHora="--:--";
+let codigo=document.getElementById("codigo").value.trim();
+let btn=document.getElementById("btnAcceder");
+let msg=document.getElementById("msg");
 
-function setCircle(id, porcentaje){
-let deg = porcentaje * 3.6;
-document.getElementById(id).style.background =
-`conic-gradient(#0095ff ${deg}deg, #d8e7f7 ${deg}deg)`;
+if(!codigo){
+mostrarMsg("Ingresa el código", true);
+return;
 }
 
-function actualizarDatos(){
-fetch(STATUS_URL)
+/* LOADING */
+btn.innerHTML='<span class="loader"></span> Verificando...';
+btn.disabled=true;
+
+/* 🔥 VERIFICAR CONEXIÓN + CÓDIGO */
+fetch(URL+"?auth="+codigo)
 .then(r=>{
-if(!r.ok) throw new Error();
+if(!r.ok) throw new Error("conexion");
 return r.json();
 })
 .then(d=>{
 
-if(!d.datos) return;
+btn.innerHTML="Acceder";
+btn.disabled=false;
 
-let datos=d.datos;
+/* 🔥 VALIDAR RESPUESTA REAL */
+if(!d.recibido){
+mostrarMsg("Código incorrecto", true);
+return;
+}
 
-segundos=0;
-let ahora=new Date();
-ultimaHora=ahora.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-
-/* ESTADO */
-document.getElementById("pozoEstado").innerText=
-datos.conexion_pozo?"Conectado":"Desconectado";
-
-document.getElementById("bombaEstado").innerText=
-datos.bomba?"Encendida":"Apagada";
-
-document.getElementById("modoEstado").innerText=
-datos.modo==="AUTO"?"Automático":"Manual";
-
-/* CÍRCULOS */
-setCircle("circlePozo", datos.nivel_pozo);
-setCircle("circleTanque", datos.nivel_tanque);
-
-document.getElementById("txtPozo").innerText=datos.nivel_pozo+"%";
-document.getElementById("txtTanque").innerText=datos.nivel_tanque+"%";
-
-/* CONFIG */
-document.getElementById("minPozo").innerText=datos.min_pozo+"%";
-document.getElementById("minTanque").innerText=datos.min_tanque+"%";
-document.getElementById("maxTanque").innerText=datos.max_tanque+"%";
-document.getElementById("profPozo").innerText=datos.prof_pozo+" m";
-document.getElementById("altTanque").innerText=datos.alt_tanque+" m";
-
-document.getElementById("modalError").style.display="none";
+/* 🔥 TODO OK */
+localStorage.setItem("auth_token", codigo);
+window.location.href="dashboard.html";
 
 })
-.catch(()=>{
-document.getElementById("modalError").style.display="flex";
-});
-}
+.catch(e=>{
 
-/* TIEMPO */
-setInterval(()=>{
-let lbl=document.getElementById("ultimaAct");
+btn.innerHTML="Acceder";
+btn.disabled=false;
 
-if(segundos<=5){
-lbl.innerText="Última actualización: Ahora";
+/* 🔥 DIFERENCIAR ERROR */
+if(e.message==="conexion"){
+mostrarMsg("Sin conexión con el servidor", true);
 }else{
-lbl.innerText="Última actualización: "+ultimaHora;
+mostrarMsg("Error inesperado", true);
 }
 
-segundos++;
-},1000);
+});
 
-setInterval(actualizarDatos,1000);
-actualizarDatos();
+}
+
+/* MENSAJE */
+function mostrarMsg(txt,error=false){
+let m=document.getElementById("msg");
+m.innerText=txt;
+m.style.display="block";
+m.style.color= error ? "#d9534f" : "#0095ff";
+}
 
 /* DESCARGAR APP */
 function descargarApp(){
