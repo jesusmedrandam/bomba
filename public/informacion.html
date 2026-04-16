@@ -1,22 +1,125 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Información del Proyecto</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin:0;
+            font-family:sans-serif;
+            background:#eef6ff;
+        }
+
+        .header {
+            background:#0095ff;
+            color:white;
+            padding:20px;
+            text-align:center;
+            font-size:22px;
+            font-weight:bold;
+            position:sticky;
+            top:0;
+        }
+
+        .container {
+            padding:20px;
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+        }
+
+        .card {
+            background:white;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size:18px;
+            font-weight:bold;
+            color:#1a4a73;
+            margin-bottom:10px;
+        }
+
+        .text {
+            font-size:16px;
+            color:#1a4a73;
+            line-height:1.5;
+        }
+
+        .link-btn {
+            display:block;
+            text-align:center;
+            background:#0095ff;
+            color:white;
+            padding:14px;
+            border-radius:14px;
+            font-size:16px;
+            font-weight:bold;
+            text-decoration:none;
+            margin-top:10px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .footer {
+            text-align:center;
+            font-size:14px;
+            color:#5a7fa3;
+            margin-top:10px;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="header">
-  <img src="icon.png" class="header-icon">
-  <span class="header-title">Información del Proyecto</span>
-</div>
+<div class="header">Información del Proyecto</div>
 
-<div class="panel-container">
-  <div class="card block">
-    <h2>Acerca del Proyecto</h2>
-    <p>El proyecto es parte del trabajo de titulacion presentado por Jesús Medranda y Mayery Orbe en la Universidad Técnica de Manabí previo a la obtención del título Ingeniero en Tecnologías de la Información......</p>
-  </div>
+<div class="container">
+
+    <div class="card">
+        <div class="card-title">Descripción</div>
+        <div class="text">
+            Este sistema forma parte de un trabajo de titulación enfocado en la automatización
+            y monitoreo de sistemas de abastecimiento de agua mediante tecnologías IoT.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Autores</div>
+        <div class="text">
+            Desarrollado por <b>Jesús Medranda</b> y <b>Mayerly Orbe</b>, estudiantes de la carrera
+            de Tecnologías de la Información de la Facultad de Ciencias Informáticas de la
+            Universidad Técnica de Manabí.
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Más información</div>
+        <div class="text">
+            Puedes acceder al material completo del proyecto.
+        </div>
+
+        <a href="https://github.com/jesusmedrandam/Tesis" target="_blank" class="link-btn">
+            Código Fuente Microcontroladores
+        </a>
+
+        <a href="https://github.com/jesusmedrandam/bomba" target="_blank" class="link-btn">
+            Código Fuente Servidor
+        </a>
+
+        <a href="https://github.com/jesusmedrandam/" target="_blank" class="link-btn">
+            Diagramas
+        </a>
+    </div>
+
+    <div class="footer">
+        Sistema de monitoreo y control de bomba de agua
+    </div>
+
 </div>
 
 </body>
