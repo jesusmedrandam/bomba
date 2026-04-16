@@ -1,73 +1,272 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>App Bomba</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/png" href="icon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<style>
+body{margin:0;font-family:sans-serif;background:#eef6ff;}
+
+.header{
+background:#0095ff;color:white;padding:20px;
+font-size:22px;font-weight:bold;text-align:center;
+box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+
+.container{padding:20px;}
+
+.title{
+font-size:20px;font-weight:bold;color:#1a4a73;margin-bottom:20px;
+}
+
+.menu-list{display:flex;flex-direction:column;gap:15px;}
+
+.menu-btn{
+background:white;padding:16px;border-radius:14px;
+font-size:17px;font-weight:bold;color:#1a4a73;
+border:2px solid #b8d6f0;
+box-shadow:0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* MODAL */
+.modal-bg{
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.45);
+display:none;align-items:center;justify-content:center;
+}
+
+.modal-box{
+width:90%;max-width:320px;background:white;
+padding:20px;border-radius:14px;
+}
+
+.modal-title{
+font-size:18px;font-weight:bold;color:#1a4a73;margin-bottom:5px;
+}
+
+.modal-desc{
+font-size:14px;color:#5a7fa3;margin-bottom:12px;
+}
+
+input{
+width:100%;padding:12px;border-radius:10px;
+border:1px solid #8bb8e0;margin-bottom:15px;font-size:16px;
+}
+
+.btn{
+width:100%;padding:12px;border-radius:12px;
+background:#0095ff;color:white;font-weight:bold;border:none;
+}
+
+.btn-cancelar{background:#9a9a9a;margin-top:10px;}
+
+.toast{
+position:fixed;bottom:25px;left:50%;
+transform:translateX(-50%);
+background:#0095ff;color:white;
+padding:14px 22px;border-radius:14px;opacity:0;
+}
+.toast.show{opacity:1;}
+.toast.error{background:#d9534f;}
+</style>
 </head>
+
 <body>
 
-<div class="start-container">
+<div class="header">Configuración</div>
 
-  <div class="start-card">
+<div class="container">
 
-    <img src="icon.png" class="app-icon">
+<div class="title">¿Qué deseas configurar?</div>
 
-    <h1 class="app-title">App Bomba</h1>
-    <p class="app-subtitle">Monitoreo de niveles del sistema</p>
+<div class="menu-list">
 
-    <div class="input-group">
-      <label>Token de acceso</label>
-      <input type="text" id="token" placeholder="Ingrese el Código de Vinculación">
-    </div>
+<button class="menu-btn" onclick="abrirModal('min_pozo')">Configurar Nivel Mínimo Pozo</button>
+<button class="menu-btn" onclick="abrirModal('min_tanque')">Configurar Nivel Mínimo Tanque</button>
+<button class="menu-btn" onclick="abrirModal('max_tanque')">Configurar Nivel Máximo Tanque</button>
+<button class="menu-btn" onclick="abrirModal('prof_pozo')">Configurar Profundidad Pozo</button>
+<button class="menu-btn" onclick="abrirModal('alt_tanque')">Configurar Altura Tanque</button>
 
-    <button class="btn-primary" onclick="validarToken()">Ingresar</button>
+<button class="menu-btn" onclick="window.location.href='vincular.html'">
+Volver a Vincular Dispositivo
+</button>
 
-    <p id="error" class="error-msg"></p>
-
-    <div class="download-area">
-      <p class="hint">Para controlar la bomba descargue la App:</p>
-      <div class="download-row">
-        <img src="icon.png" class="download-icon-big">
-        <a href="/app/app-bomba.apk" download class="download-link">Descargar App Android</a>
-      </div>
-    </div>
-
-  </div>
+<button class="menu-btn" onclick="window.location.href='informacion.html'">
+Información
+</button>
 
 </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-bg">
+<div class="modal-box">
+
+<div id="modalTitulo" class="modal-title"></div>
+<div id="modalDesc" class="modal-desc"></div>
+
+<input type="number" id="modalValor">
+
+<button class="btn" onclick="guardarValor()">Guardar</button>
+<button class="btn btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+
+</div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script>
-async function validarToken() {
-  const token = document.getElementById("token").value.trim();
-  const error = document.getElementById("error");
 
-  if (!token) {
-    error.innerText = "Ingrese un token válido";
-    return;
-  }
+const AUTH = localStorage.getItem("auth_token") || "";
 
-  try {
-    const res = await fetch(`/api/render/status?auth=${token}`);
-    if (!res.ok) throw new Error("Token inválido");
+let tipoActual="";
+let valoresActuales=null;
+let minTanqueActual=null;
+let maxTanqueActual=null;
 
-    const data = await res.json();
-    if (!data.recibido) {
-      error.innerText = "Token incorrecto";
-      return;
+/* TITULOS */
+const TITULOS={
+min_pozo:"Nuevo nivel mínimo de pozo (%)",
+min_tanque:"Nuevo nivel mínimo de tanque (%)",
+max_tanque:"Nuevo nivel máximo de tanque (%)",
+prof_pozo:"Nueva profundidad del pozo (m)",
+alt_tanque:"Nueva altura del tanque (m)"
+};
+
+/* DESCRIPCIONES */
+const DESCRIPCIONES={
+min_pozo:"Evita que la bomba funcione si el nivel es muy bajo. Ingresa un valor entre 5 y 90",
+min_tanque:"Nivel en el que se vuelve a llenar el tanque. Ingresa un valor entre 5 y 90",
+max_tanque:"Nivel donde se detiene el llenado. Ingresa un valor entre 50 y 100",
+prof_pozo:"Profundidad total del pozo. Ingresa un valor entre 0 y 4",
+alt_tanque:"Altura total del tanque. Ingresa un valor entre 0 y 4"
+};
+
+/* 🔥 VERIFICACIÓN REAL DE CONEXIÓN */
+async function cargarValores(){
+
+    // opcional: detectar offline directo
+    if(!navigator.onLine){
+        valoresActuales=null;
+        toast("Sin conexión a internet ❗", true);
+        return;
     }
 
-    sessionStorage.setItem("auth", token);
-    window.location.href = "/dashboard.html";
+    try{
 
-  } catch {
-    error.innerText = "Token inválido o servidor no disponible";
-  }
+        let r=await fetch("https://appbomba.onrender.com/api/render/status?auth="+AUTH);
+
+        if(!r.ok){
+            valoresActuales=null;
+            toast("Servidor no disponible ❗", true);
+            return;
+        }
+
+        let d=await r.json();
+
+        if(d.error==="token"){
+            valoresActuales=null;
+            toast("Token incorrecto ❌", true);
+            return;
+        }
+
+        if(!d.datos){
+            valoresActuales=null;
+            toast("Sin datos del dispositivo ⚠", true);
+            return;
+        }
+
+        valoresActuales=d.datos;
+        minTanqueActual=d.datos.min_tanque;
+        maxTanqueActual=d.datos.max_tanque;
+
+    }catch(e){
+        valoresActuales=null;
+        toast("Sin conexión a internet ❗", true);
+    }
 }
+
+cargarValores();
+
+/* MODAL */
+function abrirModal(tipo){
+
+tipoActual=tipo;
+
+let input=document.getElementById("modalValor");
+
+document.getElementById("modalTitulo").innerText=TITULOS[tipo];
+
+if(valoresActuales && valoresActuales[tipo]!==undefined){
+input.value=valoresActuales[tipo];
+
+document.getElementById("modalDesc").innerText=
+DESCRIPCIONES[tipo]+" (Actual: "+valoresActuales[tipo]+")";
+}else{
+input.value="";
+document.getElementById("modalDesc").innerText="Sin conexión con el servidor";
+}
+
+document.getElementById("modal").style.display="flex";
+}
+
+function cerrarModal(){
+document.getElementById("modal").style.display="none";
+}
+
+/* TOAST */
+function toast(msg,error=false){
+let t=document.getElementById("toast");
+t.innerText=msg;
+t.className=error?"toast error show":"toast show";
+setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+/* GUARDAR */
+function guardarValor(){
+
+if(!valoresActuales){
+toast("Sin conexión ❗",true);
+return;
+}
+
+let valor=Number(document.getElementById("modalValor").value);
+
+if(isNaN(valor)) return toast("Valor inválido",true);
+
+/* VALIDACIONES */
+if(tipoActual==="min_pozo" && (valor<5||valor>90)) return toast("5-90%",true);
+
+if(tipoActual==="min_tanque"){
+if(valor<5||valor>90) return toast("5-90%",true);
+if(valor>=maxTanqueActual) return toast("Menor que máximo",true);
+}
+
+if(tipoActual==="max_tanque"){
+if(valor<50||valor>100) return toast("50-100%",true);
+if(valor<=minTanqueActual) return toast("Mayor que mínimo",true);
+}
+
+if((tipoActual==="prof_pozo"||tipoActual==="alt_tanque")&&(valor<=0||valor>4))
+return toast("0-4 m",true);
+
+/* ENVÍO */
+let comando=`CONFIG:${tipoActual}=${valor}`;
+
+fetch("https://appbomba.onrender.com/api/render/cmd",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({auth:AUTH,cmd:comando})
+})
+.then(()=>{
+toast("Guardado ✔");
+cerrarModal();
+cargarValores();
+})
+.catch(()=>toast("Error ❗",true));
+}
+
 </script>
 
 </body>
 </html>
-
-
