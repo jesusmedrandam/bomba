@@ -221,16 +221,19 @@ for (const [campo, mensaje] of configuraciones) {
   // ===============================
   //     MODO MANUAL
   // ===============================
-if (
-  memoria.bomba !== null &&
-  memoria.bomba !== bomba &&
-  modo === "MANUAL"
-) {
-  if (bomba) {
-    await enviarPush("Bomba Encendida", "La bomba fue encendida desde modo manual.");
-  } else {
-    await enviarPush("Bomba Apagada", "La bomba fue apagada desde modo manual.");
+
+if (memoria.bomba !== null) {
+
+  if (memoria.bomba !== bomba && modo === "MANUAL") {
+
+    if (bomba) {
+      await enviarPush("Bomba Encendida", "La bomba fue encendida desde modo manual.");
+    } else {
+      await enviarPush("Bomba Apagada", "La bomba fue apagada desde modo manual.");
+    }
+
   }
+
 }
 
   // ===============================
