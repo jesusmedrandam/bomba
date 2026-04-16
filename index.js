@@ -221,15 +221,17 @@ for (const [campo, mensaje] of configuraciones) {
   // ===============================
   //     MODO MANUAL
   // ===============================
-  if (modo === "MANUAL" && bomba && !alertas.manual_on) {
+if (
+  memoria.bomba !== null &&
+  memoria.bomba !== bomba &&
+  modo === "MANUAL"
+) {
+  if (bomba) {
     await enviarPush("Bomba Encendida", "La bomba fue encendida desde modo manual.");
-    alertas.manual_on = true;
-  } else if (!(modo === "MANUAL" && bomba)) alertas.manual_on = false;
-
-  if (modo === "MANUAL" && !bomba && !alertas.manual_off) {
-    await enviarPush("Bomba Apagada", "La bomba fue apagada desde modo manual");
-    alertas.manual_off = true;
-  } else if (!(modo === "MANUAL" && !bomba)) alertas.manual_off = false;
+  } else {
+    await enviarPush("Bomba Apagada", "La bomba fue apagada desde modo manual.");
+  }
+}
 
   // ===============================
   //    5 MIN ENCENDIDA SIN SUBIR
