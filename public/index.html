@@ -120,7 +120,7 @@ Acceder
 </button>
 
 <button class="btn btn-secondary" onclick="descargarApp()">
-Descargar App
+Descargar App Android
 </button>
 
 <div id="msg" class="msg"></div>
@@ -194,7 +194,7 @@ function descargarApp(){
 let url="https://raw.githubusercontent.com/jesusmedrandam/bomba/main/public/app/app-bomba.apk";
 
 if(!esAndroid()){
-mostrarMsg("Abre este enlace desde Android", true);
+mostrarMsg("Instala la app en un dispositivo Android", true);
 window.open(url, "_blank");
 return;
 }
@@ -206,7 +206,7 @@ document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
 
-mostrarMsg("Descargando aplicación...", false);
+mostrarMsg("Instala el aplicativo cuando la descarga termine.", false);
 
 }
 
