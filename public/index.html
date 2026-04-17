@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Sistema de Bombeo</title>
+<link rel="icon" type="image/png" href="icon.png">
+
 <style>
 
 body{
@@ -128,7 +131,6 @@ Descargar App
 
 const URL="https://appbomba.onrender.com/api/render/status";
 
-/* ACCEDER */
 function acceder(){
 
 let codigo=document.getElementById("codigo").value.trim();
@@ -176,7 +178,6 @@ mostrarMsg("Error inesperado", true);
 
 }
 
-/* MENSAJE */
 function mostrarMsg(txt,error=false){
 let m=document.getElementById("msg");
 m.innerText=txt;
@@ -184,12 +185,10 @@ m.style.display="block";
 m.style.color= error ? "#d9534f" : "#0095ff";
 }
 
-/* DETECTAR ANDROID */
 function esAndroid(){
 return /Android/i.test(navigator.userAgent);
 }
 
-/* DESCARGAR APP */
 function descargarApp(){
 
 let url="https://raw.githubusercontent.com/jesusmedrandam/bomba/main/public/app/app-bomba.apk";
